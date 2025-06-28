@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Sidebar from "@/components/sidebar";
 import Header from "@/components/header";
-import { Children } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,7 +35,7 @@ export default function RootLayout({
           </div>
           <div className="bg-gray-100 text-black flex-1 h-screen overflow-hidden relative">
             <Header />
-            {children}  /* Main content area */
+            {children}
           </div>
         </div>
       </body>

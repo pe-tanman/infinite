@@ -1,8 +1,8 @@
 import ChatInput from "@/components/chat_input";
 import { Main } from "next/document";
 import Image from "next/image";
-import CustomRenderer from '../components/renderer/CustomRenderer';
 import Link from "next/link";
+import rehypePrettyCode from "rehype-pretty-code";
 
 
 export default function Home() {
@@ -16,7 +16,7 @@ export default function Home() {
         <div className="p-2">
           <Link href={"/doc"}>
             Go sample doc</Link>
-          </div>
+        </div>
       </div>
     </main>
   );
