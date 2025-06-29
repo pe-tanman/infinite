@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import React from 'react'
-import { FaPlus } from 'react-icons/fa6'
 import { TbLibrary } from 'react-icons/tb'
 import NewChat from './new_chat'
 

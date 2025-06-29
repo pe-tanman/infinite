@@ -1,13 +1,14 @@
 import React from 'react';
+import Image from 'next/image';
 
 interface ImageProps {
     src: string;
     alt: string;
 }
 
-const Image: React.FC<ImageProps> = ({ src, alt }) => {
+const ImageChild: React.FC<ImageProps> = ({ src, alt }) => {
     return (
-        <img
+        <Image
             src={src}
             alt={alt}
             className="w-full h-full object-cover rounded-xl"

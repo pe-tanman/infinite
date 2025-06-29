@@ -10,7 +10,7 @@ const LoopDiagram: React.FC<LoopDiagramProps> = ({ children }) => {
     const radius = 42; // as a percentage of the container's half-width
 
     return (
-        <div className="w-full max-w-xl aspect-square relative mx-auto mb-15 items-center">
+        <div className="w-full max-w-xl aspect-square relative mx-auto my-15 items-center">
             {/* SVG layer for the circular arrow path */}
             <div className="absolute inset-0 z-0">
                 <svg width="100%" height="100%" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">

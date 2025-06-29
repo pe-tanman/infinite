@@ -10,85 +10,100 @@ const options = {
 export default async function Props() {
     // MDX text - can be from a local file, database, anywhere
     const source = `
-  <CoverImage image="https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=2532&auto=format&fit=crop" />
+<CoverImage image="https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=2232&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" />
 
-# Demystifying Blockchain: A Simple Guide
+# Demystifying Blockchain: A Beginner-Friendly Explanation
 
-Blockchain is a groundbreaking technology that acts like a **digital record book,** but one that is shared and synchronized across many computers. Instead of one person or company controlling it, it's managed by a peer-to-peer network. This makes it incredibly secure and transparent.
+Blockchain is a revolutionary **distributed ledger** technology that records transactions across multiple computers in a secure, immutable way. It’s the foundation behind cryptocurrencies, but its use extends to voting systems, supply chains, digital identity, and more.
 
-<Callout type="info" content="**Analogy:** Think of it like a shared digital notebook. Every time a new entry is made, everyone in the group gets an updated copy. No one can secretly erase or change a past entry without everyone else knowing, because their copies wouldn't match up." />
+<Callout type="info" content="**Analogy:** Imagine a shared Google Doc where every edit is tracked, visible to everyone, and can never be deleted. Everyone has the same version, and changes are only accepted if everyone agrees." />
 
-## How Does It Work? The Journey of a Transaction
+<Callout type="warning" content="**Warning:** If someone tries to tamper with a block, it changes the block's unique code (hash), which alerts everyone and invalidates the entire chain past that point." />
 
-At its core, blockchain involves a few simple steps to record a transaction securely.
+<Callout type="error" content="**Pitfall:** While blockchain is secure, it's not completely anonymous. Public blockchains store all transactions visibly. Personal info can still be linked if not used carefully." />
+
+<Callout type="success" content="**Success Story:** Blockchain has transformed industries like logistics and finance, reducing fraud and increasing efficiency by eliminating the need for intermediaries." />
+
+## How a Blockchain Transaction Works
 
 <ArrowDiagram>
-<DiagramCard index="1" title="Transaction Initiated" desc="Someone requests a transaction, like sending digital currency." />
-<DiagramCard index="2" title="Block Creation" desc="The transaction is bundled with others into a new 'block.'" />
-<DiagramCard index="3" title="Network Broadcast" desc="The block is sent to every participant in the network." />
-<DiagramCard index="4" title="Validation & Chaining" desc="Participants verify the block's validity. If valid, it's added to the chain, creating a permanent record." />
+  <DiagramCard index="1" title="Transaction Request" desc="A user initiates a transaction, such as sending digital currency or updating a contract." />
+  <DiagramCard index="2" title="Block Creation" desc="The transaction is grouped with others into a new block." />
+  <DiagramCard index="3" title="Broadcast" desc="The block is shared across the entire network." />
+  <DiagramCard index="4" title="Validation & Consensus" desc="Participants (nodes) verify the block using consensus mechanisms like Proof of Work." />
+  <DiagramCard index="5" title="Block Added" desc="Once verified, the block is permanently added to the chain." />
 </ArrowDiagram>
 
+## Layers of the Blockchain System
 
-   <PyramidDiagram>
-              {/* The children are now ordered from top to bottom to form a pyramid */}
-              <DiagramCard index={5} title="Foundation Layer" desc="This is the widest base of the pyramid, representing the core concept." />
-              <DiagramCard index={4} title="Apex" desc="The top-most point of the pyramid, representing the final goal." />
-              <DiagramCard index={3} title="Structure Layer" desc="This layer provides structure and is narrower still." />
-              <DiagramCard index={2} title="Support Layer" desc="This layer builds upon the foundation and is slightly narrower." />
-              <DiagramCard index={1} title="Foundation Layer" desc="This is the widest base of the pyramid, representing the core concept." />
-            </PyramidDiagram>
+<PyramidDiagram>
+  <DiagramCard index={5} title="Application Layer" desc="Where users interact: wallets, dApps, and user interfaces." />
+  <DiagramCard index={4} title="Smart Contracts" desc="Self-executing contracts with coded rules and outcomes." />
+  <DiagramCard index={3} title="Consensus Mechanism" desc="Methods like Proof of Work or Stake ensure trust without central authority." />
+  <DiagramCard index={2} title="Network Layer" desc="The peer-to-peer network infrastructure that propagates blocks." />
+  <DiagramCard index={1} title="Data Layer" desc="The foundational layer containing the actual blockchain data." />
+</PyramidDiagram>
 
- <MatrixDiagram
-              xAxisLabels={["Low Impact", "High Impact"]}
-              yAxisLabels={["High Effort", "Low Effort"]}
-            >
-              {/* This order matches the axes: [row1-col1, row1-col2, row2-col1, row2-col2] */}
-              <DiagramCard index={1} title="Thankless Task" desc="High effort, low impact." />
-              <DiagramCard index={2} title="Major Project" desc="High effort, high impact." />
-              <DiagramCard index={3} title="Fill-in Task" desc="Low effort, low impact." />
-              <DiagramCard index={4} title="Quick Win" desc="Low effort, high impact." />
-            </MatrixDiagram>
+## Should You Use Blockchain? A Quick Matrix
 
-             <LoopDiagram>
-                <DiagramCard index={1} title="Step One" desc="The process begins here." />
-                <DiagramCard index={2} title="Step Two" desc="The next logical step in the flow." />
-                <DiagramCard index={3} title="Step Three" desc="A crucial intermediate step." />
-                <DiagramCard index={4} title="Step Four" desc="The final step in the process." />
-                <DiagramCard index={5} title="Step Five" desc="The final step in the process." />
-                <DiagramCard index={6} title="Step Six" desc="The final step in the process." />
-            </LoopDiagram>
+<MatrixDiagram
+xAxisLabels={["Low Impact", "High Impact"]}
+yAxisLabels={["High Effort", "Low Effort"]}
+>
+  <DiagramCard index={1} title="Buzzword Project" desc="High effort, low impact—probably not worth it." />
+  <DiagramCard index={2} title="Industry Disruptor" desc="High effort, high impact—can revolutionize sectors." />
+  <DiagramCard index={3} title="Overkill" desc="Low effort, low impact—blockchain is unnecessary here." />
+  <DiagramCard index={4} title="Easy Upgrade" desc="Low effort, high impact—great candidate for blockchain." />
+</MatrixDiagram>
 
+## Continuous Cycle of Blockchain Maintenance
 
-  <ImageGallery>
-              <Image src='https://images.unsplash.com/photo-1743445888873-7b989699663d?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' alt='Placeholder Image 1'/>
-              <Image src='https://images.unsplash.com/photo-1743445888873-7b989699663d?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' alt='Placeholder Image 2'/>
-              <Image src='https://plus.unsplash.com/premium_photo-1675337267945-3b2fff5344a0?q=80&w=1064&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' alt='Placeholder Image 3'/>
-              <Image src='https://images.unsplash.com/photo-1745487954749-a33270b757de?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' alt='Placeholder Image 4'/>
-              <Image src='https://images.unsplash.com/photo-1750841897025-97188706c29d?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwxM3x8fGVufDB8fHx8fA%3D%3D' alt='Placeholder Image 5'/>
-              <Image src='https://images.unsplash.com/photo-1750510103117-0f9c337da79b?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' alt='Placeholder Image 6'/>
-            </ImageGallery>
+<LoopDiagram>
+  <DiagramCard index={1} title="Transaction Happens" desc="Someone initiates a new transaction." />
+  <DiagramCard index={2} title="Verification" desc="Nodes confirm the legitimacy of the transaction." />
+  <DiagramCard index={3} title="Block Created" desc="The verified transaction joins a new block." />
+  <DiagramCard index={4} title="Block Broadcast" desc="The block is sent to the entire network." />
+  <DiagramCard index={5} title="Block Added to Chain" desc="If verified, the block is linked to the chain." />
+  <DiagramCard index={6} title="Ledger Updated" desc="All copies of the blockchain are updated." />
+</LoopDiagram>
 
+## Real-World Glimpses
+
+<ImageGallery>
+  <ImageChild src='https://images.unsplash.com/photo-1605792657660-596af9009e82?q=80&w=1702&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' alt='Blockchain concept visualized digitally' />
+  <ImageChild src='https://plus.unsplash.com/premium_photo-1675018587778-67888c112bd8?q=80&w=1035&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' alt='Digital ledgers and chains' />
+  <ImageChild src='https://images.unsplash.com/photo-1676907820329-d74d048a6969?q=80&w=1035&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' alt='Network of nodes and blocks' />
+  <ImageChild src='https://images.unsplash.com/photo-1670269069776-a1337c703669?q=80&w=2128&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3Dp' alt='Code and encryption concept' />
+</ImageGallery>
+
+## Dive Deeper: What Makes Up a Block?
 
 <Toggle label="What is a Block?">
-A block contains three key pieces of information
-    <Toggle label="Data">
-    The details of the transaction (who sent what to whom).
-    </Toggle>
-    <Toggle label="Hash"> 
-    A unique fingerprint for the block.
-    </Toggle>
-    <Toggle label="Hash of the Previous Block">
-    This is what links the blocks together, forming the chain.
-    </Toggle>
+A block consists of three main parts:
+
+<Toggle label="1. Data">
+The actual transaction data — like who sent money, to whom, and how much.
 </Toggle>
 
+<Toggle label="2. Hash">
+A digital fingerprint unique to that block. If anything changes, the hash changes.
+</Toggle>
 
-| Name       | Age | Occupation     |
-|------------|-----|----------------|
-| Alice      | 25  | Software Engineer |
-| Bob        | 30  | Designer       |
-| Charlie    | 22  | Data Analyst   |
+<Toggle label="3. Previous Hash">
+This links each block to the one before it, forming the "chain."
+</Toggle>
+
+</Toggle>
+
+## Meet Some Participants in the Network
+
+| Name     | Role              | Description                          |
+|----------|-------------------|--------------------------------------|
+| Alice    | Miner             | Verifies transactions and adds blocks |
+| Bob      | Node Operator     | Maintains a full copy of the ledger   |
+| Charlie  | DApp Developer    | Builds applications on the blockchain |
+| Diana    | Regular User      | Sends and receives crypto            |
+
 
 `;
 

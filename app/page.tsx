@@ -1,8 +1,5 @@
 import ChatInput from "@/components/chat_input";
-import { Main } from "next/document";
-import Image from "next/image";
 import Link from "next/link";
-import rehypePrettyCode from "rehype-pretty-code";
 
 
 export default function Home() {
