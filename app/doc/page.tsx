@@ -3,6 +3,7 @@
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
 import React from 'react';
 import Props from '@/components/GetProps';
+import Callout from '@/components/custom/Callout';
 
 const overrideComponents = {
     h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
@@ -39,7 +40,25 @@ const overrideComponents = {
     blockquote: (props: React.HTMLAttributes<HTMLElement>) => (
         <blockquote
             {...props}
-            className="border-l-4  border-gray-400 pl-4 italic text-gray-800 my-4py-2"
+            className="mb-2 border-l-4  border-gray-400 pl-4 italic text-gray-700 my-4py-2"
+        />
+    ),
+    p: (props: React.HTMLAttributes<HTMLParagraphElement>) => (
+        <p
+            {...props}
+            className="mb-2"
+        />
+    ),
+    code: (props: React.HTMLAttributes<HTMLElement>) => (
+        <code
+            {...props}
+            className="mb-2"
+        />
+    ),
+    pre: (props: React.HTMLAttributes<HTMLPreElement>) => (
+        <pre
+            {...props}
+            className="mb-2"
         />
     ),
 };
@@ -57,8 +76,8 @@ export default function TestPage() {
 
     if (!props) return <div>Loading...</div>;
     return (
-        <div className="bg-white p-12 rounded-2xl max-w-3xl mx-auto my-10 shadow-sm">
-            <MDXRemote {...props.source} components={overrideComponents} />
+        <div className="bg-white p-12 rounded-2xl max-w-5xl mx-auto my-15 shadow-sm" style={{ maxHeight: '95vh', overflowY: 'auto' }}>
+            <MDXRemote {...props.source} components={{ ...overrideComponents, Callout}} />
         </div>
     );
   }

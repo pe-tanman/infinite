@@ -1,5 +1,7 @@
 import { serialize } from 'next-mdx-remote/serialize'
 import rehypePrettyCode from 'rehype-pretty-code';
+import remarkGfm from 'remark-gfm'
+
 
 /** @type {import('rehype-pretty-code').Options} */
 const options = {
@@ -9,20 +11,11 @@ export default async function Props() {
     // MDX text - can be from a local file, database, anywhere
     const source = `
     # About MDX
-
     ## Welcome to MDX
-
     ### Heading 3
-
     > blockquote: MDX is a powerful way to write JSX in Markdown.
 
     A backslash\
-before a line break…
-
-
-Some *asterisks* for emphasis.
-
-Three asterisks for a thematic break:
 
 ***
 
@@ -38,8 +31,17 @@ function welcome() {
 }
 welcome();
 \`\`\`
+
+<Callout content="This is an informational **message**." type="info" />
+
+| Name       | Age | Occupation     |
+|------------|-----|----------------|
+| Alice      | 25  | Software Engineer |
+| Bob        | 30  | Designer       |
+| Charlie    | 22  | Data Analyst   |
+
 `;
 
-    const mdxSource = await serialize(source, {mdxOptions: { rehypePlugins: [[rehypePrettyCode, options]] }});
+    const mdxSource = await serialize(source, {mdxOptions: { remarkPlugins: [remarkGfm], rehypePlugins: [[rehypePrettyCode, options]] }});
     return { props: { source: mdxSource }}
 }

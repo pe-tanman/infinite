@@ -1,31 +1,51 @@
 import React from 'react';
+import Markdown from 'react-markdown';
 
 interface CalloutProps {
-    title: string;
-    message: string;
+    content: string;
     type?: 'info' | 'warning' | 'error' | 'success';
 }
 
-const Callout: React.FC<CalloutProps> = ({ title, message, type = 'info' }) => {
+const Callout: React.FC<CalloutProps> = ({ content, type = 'info' }) => {
     const getTypeStyles = () => {
         switch (type) {
             case 'info':
-                return 'bg-blue-100 text-blue-800 border-blue-300';
+                return 'bg-blue-100 text-blue-800';
             case 'warning':
-                return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+                return 'bg-yellow-100 text-yellow-800';
             case 'error':
-                return 'bg-red-100 text-red-800 border-red-300';
+                return 'bg-red-100 text-red-800';
             case 'success':
-                return 'bg-green-100 text-green-800 border-green-300';
+                return 'bg-green-100 text-green-800';
+            default:
+                return '';
+        }
+    };
+
+    const icon = () => {
+        switch (type) {
+            case 'info':
+                return '💡';
+            case 'warning':
+                return '⚠️';
+            case 'error':
+                return '❌';
+            case 'success':
+                return '✅';
             default:
                 return '';
         }
     };
 
     return (
-        <div className={`border-l-4 p-4 rounded ${getTypeStyles()}`}>
-            <h4 className="font-bold">{title}</h4>
-            <p>{message}</p>
+        <div className={`p-4 rounded mb-2 ${getTypeStyles()}`}>
+            <div className="flex items-center gap-3">
+                <span className="text-2xl">{icon()}</span>
+                <div>
+                    <Markdown>{content}</Markdown>
+                </div>
+            </div>
+
         </div>
     );
 };
