@@ -1,40 +1,38 @@
-// components/ToggleSection.jsx
-"use client"
+// components/ToggleList.js
+"use client";
 
-import * as React from "react"
-import { Switch } from "@/components/ui/switch"
+import { useState } from 'react';
 
-interface ToggleProps {
-    label: React.ReactNode;
-    children?: React.ReactNode;
+interface ToggleListProps {
+    label: string;
+    children: React.ReactNode;
 }
 
-export default function Toggle({ label, children }: ToggleProps) {
-    const [isToggled, setIsToggled] = React.useState(false)
-    const id = React.useId() // Generates a unique ID for accessibility
+const ToggleList = ({ label, children }: ToggleListProps) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    const toggleOpen = () => {
+        setIsOpen(!isOpen);
+    };
 
     return (
-        <div className="p-4 border rounded-lg">
-            <div className="flex items-center justify-between">
-                <Switch
-                    id={id}
-                    checked={isToggled}
-                    onCheckedChange={setIsToggled}
-                />
-                <label
-                    htmlFor={id}
-                    className="text-base font-medium leading-none"
-                >
-                    {label}
-                </label>
-            </div>
+        <div style={{ border: '1px solid #ddd', borderRadius: '4px', marginBottom: '1rem' }}>
+            <button
+                onClick={toggleOpen}
+                className="w-full px-4 py-3 text-left cursor-pointer font-bold flex items-center border-none bg-transparent hover:bg-gray-100 focus:outline-none transition"
+                type="button"
+            ><span className='mr-3'>{isOpen ? '▼' : '▶︎'}</span>
 
-            {/* Conditionally render children when the toggle is on */}
-            {isToggled && (
-                <div className="pt-4 mt-4 border-t">
+                {label}
+              
+            </button>
+            {isOpen && (
+                <div style={{ padding: '1rem' }}>
                     {children}
                 </div>
             )}
         </div>
-    )
-}
+    );
+};
+
+export default ToggleList;
