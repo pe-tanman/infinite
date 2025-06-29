@@ -24,3 +24,14 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+pre {
+  padding: 16px;
+  /* Add padding to the code block */
+  background-color: #282c34;
+  /* Optional: Set a background color */
+  border-radius: 8px;
+  /* Optional: Add rounded corners */
+  overflow-x: auto;
+  /* Ensure horizontal scrolling for long lines */
+}
