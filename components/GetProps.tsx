@@ -22,7 +22,53 @@ Blockchain is a groundbreaking technology that acts like a **digital record book
 
 At its core, blockchain involves a few simple steps to record a transaction securely.
 
-diagram[type:Arrow, direction:vertical] card[ title:1. Transaction Initiated desc:Someone requests a transaction, like sending digital currency. ] card[ title:2. Block Creation desc:The transaction is bundled with others into a new "block." ] card[ title:3. Network Broadcast desc:The block is sent to every participant in the network. ] card[ title:4. Validation & Chaining desc:Participants verify the block's validity. If valid, it's added to the chain, creating a permanent record. ] end-diagram
+<ArrowDiagram>
+<DiagramCard index="1" title="Transaction Initiated" desc="Someone requests a transaction, like sending digital currency." />
+<DiagramCard index="2" title="Block Creation" desc="The transaction is bundled with others into a new 'block.'" />
+<DiagramCard index="3" title="Network Broadcast" desc="The block is sent to every participant in the network." />
+<DiagramCard index="4" title="Validation & Chaining" desc="Participants verify the block's validity. If valid, it's added to the chain, creating a permanent record." />
+</ArrowDiagram>
+
+
+   <PyramidDiagram>
+              {/* The children are now ordered from top to bottom to form a pyramid */}
+              <DiagramCard index={5} title="Foundation Layer" desc="This is the widest base of the pyramid, representing the core concept." />
+              <DiagramCard index={4} title="Apex" desc="The top-most point of the pyramid, representing the final goal." />
+              <DiagramCard index={3} title="Structure Layer" desc="This layer provides structure and is narrower still." />
+              <DiagramCard index={2} title="Support Layer" desc="This layer builds upon the foundation and is slightly narrower." />
+              <DiagramCard index={1} title="Foundation Layer" desc="This is the widest base of the pyramid, representing the core concept." />
+            </PyramidDiagram>
+
+ <MatrixDiagram
+              xAxisLabels={["Low Impact", "High Impact"]}
+              yAxisLabels={["High Effort", "Low Effort"]}
+            >
+              {/* This order matches the axes: [row1-col1, row1-col2, row2-col1, row2-col2] */}
+              <DiagramCard index={1} title="Thankless Task" desc="High effort, low impact." />
+              <DiagramCard index={2} title="Major Project" desc="High effort, high impact." />
+              <DiagramCard index={3} title="Fill-in Task" desc="Low effort, low impact." />
+              <DiagramCard index={4} title="Quick Win" desc="Low effort, high impact." />
+            </MatrixDiagram>
+
+             <LoopDiagram>
+                <DiagramCard index={1} title="Step One" desc="The process begins here." />
+                <DiagramCard index={2} title="Step Two" desc="The next logical step in the flow." />
+                <DiagramCard index={3} title="Step Three" desc="A crucial intermediate step." />
+                <DiagramCard index={4} title="Step Four" desc="The final step in the process." />
+                <DiagramCard index={5} title="Step Five" desc="The final step in the process." />
+                <DiagramCard index={6} title="Step Six" desc="The final step in the process." />
+            </LoopDiagram>
+
+
+  <ImageGallery>
+              <Image src='https://images.unsplash.com/photo-1743445888873-7b989699663d?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' alt='Placeholder Image 1'/>
+              <Image src='https://images.unsplash.com/photo-1743445888873-7b989699663d?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' alt='Placeholder Image 2'/>
+              <Image src='https://plus.unsplash.com/premium_photo-1675337267945-3b2fff5344a0?q=80&w=1064&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' alt='Placeholder Image 3'/>
+              <Image src='https://images.unsplash.com/photo-1745487954749-a33270b757de?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' alt='Placeholder Image 4'/>
+              <Image src='https://images.unsplash.com/photo-1750841897025-97188706c29d?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwxM3x8fGVufDB8fHx8fA%3D%3D' alt='Placeholder Image 5'/>
+              <Image src='https://images.unsplash.com/photo-1750510103117-0f9c337da79b?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' alt='Placeholder Image 6'/>
+            </ImageGallery>
+
 
 <Toggle label="What is a Block?">
 A block contains three key pieces of information
@@ -46,6 +92,6 @@ A block contains three key pieces of information
 
 `;
 
-    const mdxSource = await serialize(source, {mdxOptions: { remarkPlugins: [remarkGfm], rehypePlugins: [[rehypePrettyCode, options]] }});
+    const mdxSource = await serialize(source, { mdxOptions: { remarkPlugins: [remarkGfm], rehypePlugins: [[rehypePrettyCode, options]] }});
     return { props: { source: mdxSource }}
 }

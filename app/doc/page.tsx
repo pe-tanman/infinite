@@ -6,67 +6,74 @@ import Props from '@/components/GetProps';
 import Callout from '@/components/custom/Callout';
 import CoverImage from '@/components/custom/CoverImage';
 import Toggle from '@/components/custom/Toggle';
+import ArrowDiagram from '@/components/custom/ArrowDiagram';
+import DiagramCard from '@/components/custom/DiagramCard';
+import PyramidDiagram from '@/components/custom/PyramidDiagram';
+import MatrixDiagram from '@/components/custom/MatrixDiagram';
+import LoopDiagram from '@/components/custom/LoopDiagram';
+import ImageGallery from '@/components/custom/ImageGallery';
+import Image from '@/components/custom/Image';
 
 const overrideComponents = {
     h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
         <h1
             {...props}
-            className="text-4xl font-bold mb-6 border-b-2 border-gray-300 pb-2"
+            className="text-4xl font-bold mb-6 border-b-2 border-gray-300 pb-2 leading-relaxed"
         />
     ),
     h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
         <h2
             {...props}
-            className="text-2xl font-bold mb-4 mt-6"
+            className="text-2xl font-bold mb-4 mt-6 leading-relaxed"
         />
     ),
     h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
         <h3
             {...props}
-            className="text-xl font-semibold mb-2 mt-4 text-gray-700"
+            className="text-xl font-semibold mb-2 mt-4 text-gray-700 leading-relaxed"
         />
     ),
     ul: (props: React.HTMLAttributes<HTMLUListElement>) => (
         <ul
             {...props}
-            className="list-disc list-inside pl-6 mb-2"
+            className="list-disc list-inside pl-6 mb-2 leading-relaxed"
         />
     ),
     ol: (props: React.HTMLAttributes<HTMLOListElement>) => (
         <ol
             {...props}
-            className="list-decimal list-inside pl-6 mb-2"
+            className="list-decimal list-inside pl-6 mb-2 leading-relaxed"
         >
         </ol>
     ),
     blockquote: (props: React.HTMLAttributes<HTMLElement>) => (
         <blockquote
             {...props}
-            className="mb-2 border-l-4  border-gray-400 pl-4 italic text-gray-700 my-4py-2"
+            className="mb-2 border-l-4 border-gray-400 pl-4 italic text-gray-700 my-4 py-2 leading-relaxed"
         />
     ),
     p: (props: React.HTMLAttributes<HTMLParagraphElement>) => (
         <p
             {...props}
-            className="mb-2"
+            className="mb-4 leading-relaxed"
         />
     ),
     code: (props: React.HTMLAttributes<HTMLElement>) => (
         <code
             {...props}
-            className="mb-2"
+            className="mb-2 leading-relaxed"
         />
     ),
     pre: (props: React.HTMLAttributes<HTMLPreElement>) => (
         <pre
             {...props}
-            className="mb-2"
+            className="mb-2 leading-relaxed"
         />
     ),
     hr: (props: React.HTMLAttributes<HTMLHRElement>) => (
         <hr
             {...props}
-            className=" border-gray-400 mb-2"
+            className="border-gray-400 mb-2"
         />
     ),
 };
@@ -85,7 +92,7 @@ export default function TestPage() {
     if (!props) return <div>Loading...</div>;
     return (
         <div className="bg-white px-24 py-16 rounded-2xl max-w-6xl mx-auto my-15 shadow-sm" style={{ maxHeight: '95vh', overflowY: 'auto' }}>
-            <MDXRemote {...props.source} components={{ ...overrideComponents, Callout, CoverImage, Toggle }} />
+            <MDXRemote {...props.source} components={{ ...overrideComponents, Callout, CoverImage, Toggle, ArrowDiagram, DiagramCard, PyramidDiagram, MatrixDiagram, LoopDiagram, ImageGallery, Image }} />
         </div>
     );
   }

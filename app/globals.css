@@ -141,6 +141,51 @@ th {
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+.rlc-container {
+  display: flex;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.rlc-info {
+  flex: 4;
+  padding: 0.5rem;
+}
+
+.rlc-title {
+  font-size: 1.2rem;
+  margin-bottom: 0.25rem;
+}
+
+.rlc-description {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.rlc-url-container {
+  display: flex;
+  align-items: center;
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.rlc-favicon {
+  margin-right: 0.5rem;
+}
+
+.rlc-image-container {
+  flex: 1;
+}
+
+.rlc-image {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

@@ -22,7 +22,6 @@ const ToggleList = ({ label, children }: ToggleListProps) => {
                 className="w-full px-4 py-3 text-left cursor-pointer font-bold flex items-center border-none bg-transparent hover:bg-gray-100 focus:outline-none transition"
                 type="button"
             ><span className='mr-3'>{isOpen ? '▼' : '▶︎'}</span>
-
                 {label}
               
             </button>
