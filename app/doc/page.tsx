@@ -4,6 +4,8 @@ import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
 import React from 'react';
 import Props from '@/components/GetProps';
 import Callout from '@/components/custom/Callout';
+import CoverImage from '@/components/custom/CoverImage';
+import Toggle from '@/components/custom/Toggle';
 
 const overrideComponents = {
     h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
@@ -61,6 +63,12 @@ const overrideComponents = {
             className="mb-2"
         />
     ),
+    hr: (props: React.HTMLAttributes<HTMLHRElement>) => (
+        <hr
+            {...props}
+            className=" border-gray-400 mb-2"
+        />
+    ),
 };
 
 export default function TestPage() {
@@ -76,8 +84,8 @@ export default function TestPage() {
 
     if (!props) return <div>Loading...</div>;
     return (
-        <div className="bg-white p-12 rounded-2xl max-w-5xl mx-auto my-15 shadow-sm" style={{ maxHeight: '95vh', overflowY: 'auto' }}>
-            <MDXRemote {...props.source} components={{ ...overrideComponents, Callout}} />
+        <div className="bg-white px-24 py-16 rounded-2xl max-w-6xl mx-auto my-15 shadow-sm" style={{ maxHeight: '95vh', overflowY: 'auto' }}>
+            <MDXRemote {...props.source} components={{ ...overrideComponents, Callout, CoverImage, Toggle }} />
         </div>
     );
   }
