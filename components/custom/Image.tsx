@@ -17,4 +17,4 @@ const ImageChild: React.FC<ImageProps> = ({ src, alt }) => {
     );
 };
 
-export default Image;
+export default ImageChild;

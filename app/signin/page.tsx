@@ -1,3 +1,5 @@
+
+import React from "react";
 import FirebaseAuthUI from "@/components/firebase-auth-ui";
 
 export default function LoginPage() {
