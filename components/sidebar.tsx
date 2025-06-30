@@ -1,14 +1,14 @@
 import Link from 'next/link'
 import React from 'react'
-import { FaPlus } from 'react-icons/fa6'
 import { TbLibrary } from 'react-icons/tb'
 import NewChat from './new_chat'
+import Image from 'next/image'
 
 function Sidebar() {
   return (
       <div className="p-4 space-y-4">
         <div className="flex items-center space-x-3">
-        <img src="/infinite_white_icon.png" alt="App Icon" className="w-15 h-15 rounded-full" />
+        <Image src="/infinite_white_icon.png" alt="App Icon" className="w-15 h-15 rounded-full" />
         <button>
           Infinite
         </button>

@@ -1,102 +1,98 @@
-import CustomRenderer from '@/components/renderer/CustomRenderer';
-import React from 'react'
+"use client";
 
-const markdownContent: string = `
-cover[image:https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=2532&auto=format&fit=crop]
+import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
+import React from 'react';
+import Props from '@/components/GetProps';
+import Callout from '@/components/custom/Callout';
+import CoverImage from '@/components/custom/CoverImage';
+import Toggle from '@/components/custom/Toggle';
+import ArrowDiagram from '@/components/custom/ArrowDiagram';
+import DiagramCard from '@/components/custom/DiagramCard';
+import PyramidDiagram from '@/components/custom/PyramidDiagram';
+import MatrixDiagram from '@/components/custom/MatrixDiagram';
+import LoopDiagram from '@/components/custom/LoopDiagram';
+import ImageGallery from '@/components/custom/ImageGallery';
+import Image from '@/components/custom/Image';
 
-# Demystifying Blockchain: A Simple Guide
+const overrideComponents = {
+    h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
+        <h1
+            {...props}
+            className="text-4xl font-bold mb-6 border-b-2 border-gray-300 pb-2 leading-relaxed"
+        />
+    ),
+    h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
+        <h2
+            {...props}
+            className="text-2xl font-bold mb-4 mt-6 leading-relaxed"
+        />
+    ),
+    h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
+        <h3
+            {...props}
+            className="text-xl font-semibold mb-2 mt-4 text-gray-700 leading-relaxed"
+        />
+    ),
+    ul: (props: React.HTMLAttributes<HTMLUListElement>) => (
+        <ul
+            {...props}
+            className="list-disc list-inside pl-6 mb-2 leading-relaxed"
+        />
+    ),
+    ol: (props: React.HTMLAttributes<HTMLOListElement>) => (
+        <ol
+            {...props}
+            className="list-decimal list-inside pl-6 mb-2 leading-relaxed"
+        >
+        </ol>
+    ),
+    blockquote: (props: React.HTMLAttributes<HTMLElement>) => (
+        <blockquote
+            {...props}
+            className="mb-2 border-l-4 border-gray-400 pl-4 italic text-gray-700 my-4 py-2 leading-relaxed"
+        />
+    ),
+    p: (props: React.HTMLAttributes<HTMLParagraphElement>) => (
+        <p
+            {...props}
+            className="mb-4 leading-relaxed"
+        />
+    ),
+    code: (props: React.HTMLAttributes<HTMLElement>) => (
+        <code
+            {...props}
+            className="mb-2 leading-relaxed"
+        />
+    ),
+    pre: (props: React.HTMLAttributes<HTMLPreElement>) => (
+        <pre
+            {...props}
+            className="mb-2 leading-relaxed"
+        />
+    ),
+    hr: (props: React.HTMLAttributes<HTMLHRElement>) => (
+        <hr
+            {...props}
+            className="border-gray-400 mb-2"
+        />
+    ),
+};
 
-Blockchain is a groundbreaking technology that acts like a **digital record book,** but one that is shared and synchronized across many computers. Instead of one person or company controlling it, it's managed by a peer-to-peer network. This makes it incredibly secure and transparent.
+export default function TestPage() {
+    // Call Props and extract the returned props object
+    const [props, setProps] = React.useState<{ source: MDXRemoteSerializeResult } | null>(null);
 
-block[emoji:🔗 color:#e3f2fd]
-Analogy: Think of it like a shared digital notebook. Every time a new entry is made, everyone in the group gets an updated copy. No one can secretly erase or change a past entry without everyone else knowing, because their copies wouldn't match up.
-[/block]
+    React.useEffect(() => {
+        (async () => {
+            const result = await Props();
+            setProps(result.props);
+        })();
+    }, []);
 
-## How Does It Work? The Journey of a Transaction
-
-At its core, blockchain involves a few simple steps to record a transaction securely.
-
-diagram[type:Arrow, direction:vertical] card[ title:1. Transaction Initiated desc:Someone requests a transaction, like sending digital currency. ] card[ title:2. Block Creation desc:The transaction is bundled with others into a new "block." ] card[ title:3. Network Broadcast desc:The block is sent to every participant in the network. ] card[ title:4. Validation & Chaining desc:Participants verify the block's validity. If valid, it's added to the chain, creating a permanent record. ] end-diagram
-
-toggle[title:What's in a "Block"?]
-
-A block contains three key pieces of information
-
-toggle[title:Data]
-
-The details of the transaction (who sent what to whom).
-
-[/toggle]
-
-toggle[title:Hash]
-
-A unique fingerprint for the block.
-
-[/toggle]
-
-toggle[title:Hash of the Previous Block]
-
-This is what links the blocks together, forming the chain. [/toggle]
-
-[/toggle]
-
-## Key Features of Blockchain
-
-The structure of blockchain gives it several powerful properties, which build upon each other to create a robust and trustworthy system.
-
-diagram[type:Pyramid]
-card[
-title:Decentralization
-desc:No single entity has control; power is distributed across the network.
-]
-card[
-title:Immutability
-desc:Once a transaction is recorded, it cannot be altered or deleted.
-]
-card[
-title:Transparency
-desc:All participants can see the transactions on the ledger (though user identity can be anonymous).
-]
-end-diagram
-
-## Real-World Applications
-
-Blockchain is more than just cryptocurrencies like Bitcoin. It has the potential to revolutionize many industries by offering a new level of trust and efficiency.
-
-diagram[type:Matrix]
-card[
-title:Finance
-desc:Cross-border payments, digital assets, and faster settlements.
-]
-card[
-title:Supply Chain
-desc:Tracking goods from origin to consumer to ensure authenticity.
-]
-card[
-title:Healthcare
-desc:Securely managing and sharing patient medical records.
-]
-card[
-title:Voting Systems
-desc:Creating secure and transparent electronic voting systems.
-]
-end-diagram
-
-## Learn More
-
-page-card[icon:💡 bg:#fff3e0 title:Use Cases for Smart Contracts link:/smart-contracts]
-
-url-card[link:https://www.ibm.com/topics/what-is-blockchain title:IBM: What is Blockchain? desc:A deep dive into the fundamentals and business applications of blockchain technology. image:https://www.ibm.com/brand/experience-guides/developer/b1db1ae501d522a1a4b49613fe07c9f1/01_8-bar-positive.svg]
-`;
-
-const page = () => {
+    if (!props) return <div>Loading...</div>;
     return (
-        <main className="flex flex-col items-center justify-center max-x-3xl px-20 py-20 min-h-screen ">
-            <div className="flex flex-col w-full mx-auto text-center p-4 gap-5 overflow-y-auto max-h-screen bg-white border border-gray-300 rounded-2xl shadow-lg">
-                <CustomRenderer content={markdownContent} />
-            </div>
-        </main>
-    )
-}
-
-export default page
+        <div className="bg-white px-24 py-16 rounded-2xl max-w-6xl mx-auto my-15 shadow-sm" style={{ maxHeight: '95vh', overflowY: 'auto' }}>
+            <MDXRemote {...props.source} components={{ ...overrideComponents, Callout, CoverImage, Toggle, ArrowDiagram, DiagramCard, PyramidDiagram, MatrixDiagram, LoopDiagram, ImageGallery, Image }} />
+        </div>
+    );
+  }

@@ -1,18 +1,20 @@
-// components/custom/DiagramCard.tsx
+
 import React from 'react';
 
-export interface DiagramCardProps {
+interface DiagramCardProps {
+    index: number;
     title: string;
-    desc?: string;
+    desc: string;
 }
 
-const DiagramCard: React.FC<DiagramCardProps> = ({ title, desc }) => {
+const DiagramCard: React.FC<DiagramCardProps> = ({ index, title, desc }) => {
     return (
-        <div className="block p-4 bg-white border border-gray-300 rounded-md shadow-sm w-full max-w-xs text-center">
-            <h5 className="text-lg font-semibold tracking-tight text-gray-800">{title}</h5>
-            {desc && <p className="text-sm text-gray-600 mt-1">{desc}</p>}
+        // The card is now a simple styled div. `h-full` helps it stretch to fill its grid container.
+        <div className="h-full rounded-xl max-w-3xl bg-white p-6 text-center shadow-md border border-slate-200">
+            <h3 className="mb-2 text-lg font-bold text-slate-800">{index}. {title}</h3>
+            <p className="text-sm leading-relaxed text-slate-600">{desc}</p>
         </div>
     );
-};
-
+  };
+  
 export default DiagramCard;
