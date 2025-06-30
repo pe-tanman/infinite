@@ -6,6 +6,13 @@ const nextConfig = {
   // Configure `pageExtensions` to include markdown and MDX files
   transpilePackages: ['next-mdx-remote'],
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
+  images: {
+    domains: [
+      "images.unsplash.com",
+      "plus.unsplash.com",
+      "placehold.co",
+    ]
+  }
   // Optionally, add any other Next.js config below
 }
 

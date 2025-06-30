@@ -8,7 +8,7 @@ function Sidebar() {
   return (
       <div className="p-4 space-y-4">
         <div className="flex items-center space-x-3">
-        <Image src="/infinite_white_icon.png" alt="App Icon" className="w-15 h-15 rounded-full" />
+        <Image src="/infinite_white_icon.png" width={60} height={60} alt="App Icon" className="rounded-full" />
         <button>
           Infinite
         </button>

@@ -8,13 +8,16 @@ interface ImageProps {
 
 const ImageChild: React.FC<ImageProps> = ({ src, alt }) => {
     return (
-        <Image
-            src={src}
-            alt={alt}
-            className="w-full h-full object-cover rounded-xl"
-            onError={(e) => { e.currentTarget.src = 'https://placehold.co/400x400/FF0000/FFFFFF?text=Error'; }}
-        />
+        <div className="relative w-full h-0 pb-[100%]">
+            <Image
+                src={src}
+                alt={alt}
+                fill
+                className="absolute top-0 left-0 object-cover rounded-xl"
+                onError={(e) => { e.currentTarget.src = 'https://placehold.co/400x400/FF0000/FFFFFF?text=Error'; }}
+            />
+        </div>
     );
-};
+}
 
 export default ImageChild;
