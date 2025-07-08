@@ -13,6 +13,7 @@ import MatrixDiagram from '@/components/custom/MatrixDiagram';
 import LoopDiagram from '@/components/custom/LoopDiagram';
 import ImageGallery from '@/components/custom/ImageGallery';
 import ImageChild from '@/components/custom/Image';
+import PageCard from '@/components/custom/PageCard';
 
 const overrideComponents = {
     h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
@@ -92,7 +93,7 @@ export default function TestPage() {
     if (!props) return <div>Loading...</div>;
     return (
         <div className="bg-white px-24 py-16 rounded-2xl max-w-6xl mx-auto my-15 shadow-sm" style={{ maxHeight: '95vh', overflowY: 'auto' }}>
-            <MDXRemote {...props.source} components={{ ...overrideComponents, Callout, CoverImage, Toggle, ArrowDiagram, DiagramCard, PyramidDiagram, MatrixDiagram, LoopDiagram, ImageGallery, ImageChild }} />
+            <MDXRemote {...props.source} components={{ ...overrideComponents, Callout, CoverImage, Toggle, ArrowDiagram, DiagramCard, PyramidDiagram, MatrixDiagram, LoopDiagram, ImageGallery, ImageChild, PageCard }} />
         </div>
     );
   }
