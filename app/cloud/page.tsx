@@ -2,16 +2,17 @@
 
 import React, { useEffect, useState } from 'react'
 import { db } from '@/lib/firebase/clientApp'
-import { collection, getDocs, query, orderBy, limit, where, setDoc, doc, serverTimestamp } from 'firebase/firestore'
+import { collection, getDocs } from 'firebase/firestore'
 import Link from 'next/link'
 import { useAuth } from '@/components/auth/AuthProvider'
+import Image from 'next/image'
 
 interface CloudPage {
     id: string
     title: string
     content: string
     coverImage?: string
-    createdAt: any
+    createdAt: string | Date
     timestamp?: string
     viewCount: number
     createdBy: string
@@ -24,61 +25,6 @@ const CloudPages: React.FC = () => {
     const [loading, setLoading] = useState(true)
     const [filter, setFilter] = useState<'all' | 'mine'>('all')
     const [error, setError] = useState<string | null>(null)
-
-    // Test function to check Firebase connectivity
-    const testFirebaseConnection = async () => {
-        try {
-            console.log('Testing Firebase connection...')
-            console.log('Firebase app:', db.app.name)
-            console.log('Project ID:', db.app.options.projectId)
-
-            // Try to read from a simple collection
-            const testRef = collection(db, 'test')
-            const testSnapshot = await getDocs(testRef)
-            console.log('Firebase connection successful. Test collection size:', testSnapshot.size)
-
-            alert(`Firebase connected successfully!\nProject: ${db.app.options.projectId}\nTest collection documents: ${testSnapshot.size}`)
-        } catch (error) {
-            console.error('Firebase connection test failed:', error)
-            alert(`Firebase connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
-        }
-    }
-    const createTestPage = async () => {
-        try {
-            const testPageId = `test-page-${Date.now()}`
-            const testData = {
-                title: 'Test Page',
-                content: '# Test Page\n\nThis is a test page created to verify Firestore integration.',
-                timestamp: new Date().toISOString(),
-                createdBy: user?.uid || 'anonymous',
-                viewCount: 0,
-                public: true,
-                createdAt: serverTimestamp(),
-                lastUpdated: serverTimestamp()
-            }
-
-            await setDoc(doc(db, 'pages', testPageId), testData)
-            console.log('Test page created:', testPageId)
-
-            // Refresh the page list
-            const fetchPages = async () => {
-                const pagesRef = collection(db, 'pages')
-                const q = query(pagesRef, limit(50))
-                const snapshot = await getDocs(q)
-
-                const pagesData: CloudPage[] = []
-                snapshot.forEach((doc) => {
-                    pagesData.push({ id: doc.id, ...doc.data() } as CloudPage)
-                })
-
-                setPages(pagesData)
-            }
-
-            await fetchPages()
-        } catch (error) {
-            console.error('Error creating test page:', error)
-        }
-    }
 
     useEffect(() => {
         const fetchPages = async () => {
@@ -116,8 +62,8 @@ const CloudPages: React.FC = () => {
 
                 // Sort by creation date in JavaScript
                 pagesData.sort((a, b) => {
-                    const aTime = a.createdAt?.toDate?.() || new Date(a.timestamp || 0)
-                    const bTime = b.createdAt?.toDate?.() || new Date(b.timestamp || 0)
+                    const aTime = getDate(a.createdAt)
+                    const bTime = getDate(b.createdAt)
                     return bTime.getTime() - aTime.getTime()
                 })
 
@@ -136,6 +82,14 @@ const CloudPages: React.FC = () => {
         fetchPages()
     }, [filter, user])
 
+    // Helper to get a JS Date from Firestore Timestamp or string
+    function getDate(val: string | Date | { toDate?: () => Date }): Date {
+        if (typeof val === 'string') return new Date(val)
+        if (val instanceof Date) return val
+        if (val && typeof val === 'object' && typeof val.toDate === 'function') return val.toDate()
+        return new Date(0)
+    }
+
     return (
         <div className="min-h-screen bg-gray-50 py-8">
             <div className="max-w-6xl mx-auto px-6">
@@ -151,8 +105,8 @@ const CloudPages: React.FC = () => {
                     <button
                         onClick={() => setFilter('all')}
                         className={`px-4 py-2 rounded-lg font-medium transition-colors ${filter === 'all'
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                             }`}
                     >
                         All Pages
@@ -161,14 +115,13 @@ const CloudPages: React.FC = () => {
                         <button
                             onClick={() => setFilter('mine')}
                             className={`px-4 py-2 rounded-lg font-medium transition-colors ${filter === 'mine'
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                                 }`}
                         >
                             My Pages
                         </button>
                     )}
-
 
                     <span className="text-sm text-gray-600">
                         Found: {pages.length} pages
@@ -202,11 +155,18 @@ const CloudPages: React.FC = () => {
                             >
                                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
                                     {/* Cover Image */}
-                                    {page.coverImage ? (
-                                        <div
-                                            className="h-48 bg-cover bg-center"
-                                            style={{ backgroundImage: `url(${page.coverImage})` }}
-                                        />
+                                    {page.coverImage && typeof page.coverImage === 'string' ? (
+                                        // Use Next.js Image for optimization
+                                        <div className="h-48 w-full relative">
+                                            <Image
+                                                src={page.coverImage}
+                                                alt={page.title ? `${page.title} cover` : 'Page cover'}
+                                                fill
+                                                className="object-cover rounded-t-lg"
+                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                priority={false}
+                                            />
+                                        </div>
                                     ) : (
                                         <div className="h-48 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500" />
                                     )}
@@ -226,7 +186,7 @@ const CloudPages: React.FC = () => {
                                         <div className="flex items-center justify-between text-xs text-gray-500">
                                             <div className="flex items-center space-x-4">
                                                 <span>
-                                                    {page.createdAt?.toDate?.()?.toLocaleDateString() || 'Recently'}
+                                                    {getDate(page.createdAt).toLocaleDateString() || 'Recently'}
                                                 </span>
                                                 <span className="flex items-center space-x-1">
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -67,7 +67,7 @@ const overrideComponents = {
     ),
     code: (props: React.HTMLAttributes<HTMLElement>) => {
         // Handle inline code vs code blocks - rehype-pretty-code handles syntax highlighting
-        const isInline = !props.className?.includes('language-') && !(props as any)['data-language'];
+        const isInline = !props.className?.includes('language-') && !(props as { 'data-language'?: string })['data-language'];
         return (
             <code
                 {...props}
@@ -99,7 +99,7 @@ interface PageData {
     timestamp: string;
     createdBy: string;
     viewCount: number;
-    lastUpdated: any;
+    lastUpdated: string | Date;
     prompt?: string;
     excerpt?: string;
 }
@@ -114,18 +114,32 @@ export default function DynamicPage({ params }: DynamicPageProps) {
     const { user } = useAuth();
     const [mdxSource, setMdxSource] = React.useState<MDXRemoteSerializeResult | null>(null);
     const [pageData, setPageData] = React.useState<PageData | null>(null);
-    const [loading, setLoading] = React.useState(true);
+    const [loading, setLoading] = React.useState<boolean>(true);
     const [error, setError] = React.useState<string | null>(null);
-    const [pageId, setPageId] = React.useState<string>('');
+    const [pageId, setPageId] = React.useState<string | null>(null);
 
+    // Resolve params Promise
     React.useEffect(() => {
-        const initializePage = async () => {
-            const resolvedParams = await params;
+        params.then(resolvedParams => {
             setPageId(resolvedParams.pageId);
-        };
-
-        initializePage();
+        });
     }, [params]);
+
+    // Function to save page data to Firestore
+    const savePageToFirestore = React.useCallback(async (pageId: string, data: PageData) => {
+        try {
+            await setDoc(doc(db, 'pages', pageId), {
+                ...data,
+                createdAt: serverTimestamp(),
+                lastUpdated: serverTimestamp(),
+                viewCount: 1,
+                public: true, // Make pages publicly accessible
+                createdBy: user?.uid || 'anonymous'
+            });
+        } catch (error) {
+            console.error('Error saving page to Firestore:', error);
+        }
+    }, [user]);
 
     React.useEffect(() => {
         if (!pageId) return;
@@ -228,23 +242,12 @@ export default function DynamicPage({ params }: DynamicPageProps) {
         };
 
         loadPageData();
-    }, [pageId, user]);
+    }, [pageId, user, savePageToFirestore]);
 
-    // Function to save page data to Firestore
-    const savePageToFirestore = async (pageId: string, data: PageData) => {
-        try {
-            await setDoc(doc(db, 'pages', pageId), {
-                ...data,
-                createdAt: serverTimestamp(),
-                lastUpdated: serverTimestamp(),
-                viewCount: 1,
-                public: true, // Make pages publicly accessible
-                createdBy: user?.uid || 'anonymous'
-            });
-        } catch (error) {
-            console.error('Error saving page to Firestore:', error);
-        }
-    };
+    // 4. Escape unescaped quotes in JSX (example for line 320)
+    // Replace: Generated from: "{pageData.prompt}"
+    // With:
+    // Generated from: &quot;{pageData.prompt}&quot;
 
     if (loading) {
         return (
@@ -317,7 +320,7 @@ export default function DynamicPage({ params }: DynamicPageProps) {
                 </div>
                 {pageData.prompt && (
                     <div className="mt-2 text-xs text-gray-600 italic">
-                        Generated from: "{pageData.prompt}"
+                        Generated from: &quot;{pageData.prompt}&quot;
                     </div>
                 )}
             </div>

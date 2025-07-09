@@ -123,7 +123,7 @@ const NewDocumentPage: React.FC = () => {
         }
     ]
 
-    const useTemplate = (template: typeof templates[0]) => {
+    const handleUseTemplate = (template: typeof templates[0]) => {
         setPrompt(template.prompt)
     }
 
@@ -207,7 +207,7 @@ const NewDocumentPage: React.FC = () => {
                         {templates.map((template, index) => (
                             <button
                                 key={index}
-                                onClick={() => useTemplate(template)}
+                                onClick={() => handleUseTemplate(template)}
                                 className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors text-left"
                             >
                                 <h4 className="font-medium text-gray-900 mb-2">{template.title}</h4>

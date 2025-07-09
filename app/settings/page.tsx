@@ -1,12 +1,10 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { useAuth } from '@/components/auth/AuthProvider'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
-import { isOpenAIConfigured, checkOpenAIAvailability } from '@/lib/openai/config'
+import { checkOpenAIAvailability } from '@/lib/openai/config'
 
 const SettingsPage: React.FC = () => {
-    const { user } = useAuth()
     const [apiKey, setApiKey] = useState('')
     const [isConfigured, setIsConfigured] = useState(false)
     const [testResult, setTestResult] = useState<string | null>(null)
@@ -30,7 +28,7 @@ const SettingsPage: React.FC = () => {
 
             // Update environment variable for current session
             if (typeof window !== 'undefined') {
-                // @ts-ignore
+                // @ts-expect-error: Intentionally setting a global variable for runtime configuration
                 window.NEXT_PUBLIC_OPENAI_API_KEY = apiKey.trim()
             }
 
@@ -60,7 +58,7 @@ const SettingsPage: React.FC = () => {
             } else {
                 setTestResult('❌ API key is invalid or has insufficient permissions.')
             }
-        } catch (error) {
+        } catch {
             setTestResult('❌ Failed to test API key. Please check your internet connection.')
         } finally {
             setIsLoading(false)
@@ -144,10 +142,10 @@ const SettingsPage: React.FC = () => {
 
                                     {testResult && (
                                         <div className={`p-3 rounded-lg text-sm ${testResult.includes('✅')
-                                                ? 'bg-green-50 text-green-700'
-                                                : testResult.includes('❌')
-                                                    ? 'bg-red-50 text-red-700'
-                                                    : 'bg-blue-50 text-blue-700'
+                                            ? 'bg-green-50 text-green-700'
+                                            : testResult.includes('❌')
+                                                ? 'bg-red-50 text-red-700'
+                                                : 'bg-blue-50 text-blue-700'
                                             }`}>
                                             {testResult}
                                         </div>
@@ -168,7 +166,7 @@ const SettingsPage: React.FC = () => {
                                     <li>Copy the key and paste it above</li>
                                 </ol>
                                 <p className="mt-2 text-xs text-blue-700">
-                                    Note: API usage may incur costs based on OpenAI's pricing.
+                                    Note: API usage may incur costs based on OpenAI&apos;s pricing.
                                 </p>
                             </div>
 

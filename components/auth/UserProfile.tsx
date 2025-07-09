@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { useAuth } from './AuthProvider'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface UserProfileProps {
     isCollapsed?: boolean
@@ -59,11 +60,15 @@ const UserProfile: React.FC<UserProfileProps> = ({ isCollapsed = false, onSignIn
                 title={isCollapsed ? displayName : undefined}
             >
                 {photoURL ? (
-                    <img
-                        src={photoURL}
-                        alt={displayName}
-                        className="w-8 h-8 rounded-full object-cover"
-                    />
+                    <div className="w-8 h-8 rounded-full relative overflow-hidden">
+                        <Image
+                            src={photoURL}
+                            alt={displayName}
+                            fill
+                            className="object-cover"
+                            sizes="32px"
+                        />
+                    </div>
                 ) : (
                     <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium text-sm">
                         {displayName.charAt(0).toUpperCase()}

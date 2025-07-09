@@ -10,7 +10,7 @@ interface ContentGenerationRequest {
 export async function POST(request: NextRequest) {
     try {
         const body: ContentGenerationRequest = await request.json()
-        const { title, prompt, includeInteractiveElements = true, includeNextSteps = true } = body
+        const { prompt } = body
         const userPrompt = prompt
 
         // Check if API key is configured

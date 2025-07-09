@@ -3,6 +3,7 @@
 import React from 'react'
 import { useAuth } from '@/components/auth/AuthProvider'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
+import Image from 'next/image'
 
 const ProfilePage: React.FC = () => {
     const { user } = useAuth()
@@ -25,11 +26,15 @@ const ProfilePage: React.FC = () => {
                     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
                         <div className="flex items-center space-x-6">
                             {user.photoURL ? (
-                                <img
-                                    src={user.photoURL}
-                                    alt={displayName}
-                                    className="w-20 h-20 rounded-full object-cover"
-                                />
+                                <div className="w-20 h-20 rounded-full relative overflow-hidden">
+                                    <Image
+                                        src={user.photoURL}
+                                        alt={displayName}
+                                        fill
+                                        className="object-cover"
+                                        sizes="80px"
+                                    />
+                                </div>
                             ) : (
                                 <div className="w-20 h-20 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-2xl">
                                     {displayName.charAt(0).toUpperCase()}

@@ -1,5 +1,5 @@
 import React from 'react'
-import { FacebookEmbed, YouTubeEmbed, InstagramEmbed, PinterestEmbed, PlaceholderEmbed, TikTokEmbed, XEmbed } from 'react-social-media-embed';
+import { FacebookEmbed, YouTubeEmbed, InstagramEmbed, PinterestEmbed, TikTokEmbed, XEmbed } from 'react-social-media-embed';
 
 const Link = ({ url }: { url: string }) => {
     if (url.includes("facebook.com") && url.includes("posts")) {
@@ -58,7 +58,7 @@ const Link = ({ url }: { url: string }) => {
         )
     }
     else {
-        
+
     }
 }
 

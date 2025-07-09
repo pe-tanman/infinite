@@ -42,8 +42,8 @@ const SignInModal: React.FC<SignInModalProps> = ({ isOpen, onClose }) => {
                 await signInWithEmailAndPassword(auth, email, password)
             }
             onClose()
-        } catch (error: any) {
-            setError(error.message)
+        } catch (error: unknown) {
+            setError(error instanceof Error ? error.message : 'An error occurred')
         } finally {
             setLoading(false)
         }
@@ -57,8 +57,8 @@ const SignInModal: React.FC<SignInModalProps> = ({ isOpen, onClose }) => {
             const provider = new GoogleAuthProvider()
             await signInWithPopup(auth, provider)
             onClose()
-        } catch (error: any) {
-            setError(error.message)
+        } catch (error: unknown) {
+            setError(error instanceof Error ? error.message : 'An error occurred')
         } finally {
             setLoading(false)
         }
@@ -89,8 +89,8 @@ const SignInModal: React.FC<SignInModalProps> = ({ isOpen, onClose }) => {
             await sendPasswordResetEmail(auth, email)
             setResetEmailSent(true)
             setError('')
-        } catch (error: any) {
-            setError(error.message)
+        } catch (error: unknown) {
+            setError(error instanceof Error ? error.message : 'An error occurred')
         }
     }
 

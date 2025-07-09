@@ -7,6 +7,7 @@ import { useState } from 'react'
 import UserProfile from './auth/UserProfile'
 import { BiCollection } from "react-icons/bi";
 import SignInModal from './auth/SignInModal'
+import Image from 'next/image'
 
 const Sidebar = () => {
   const { user } = useAuth()
@@ -88,11 +89,15 @@ const Sidebar = () => {
         {/* Logo */}
         <div className="p-4 border-b border-gray-200 flex-shrink-0">
           <Link href="/" className="flex items-center space-x-3">
-            <img
-              src="/infinite_white_icon.png"
-              alt="Infinite Logo"
-              className="w-13 h-13 rounded-lg object-cover"
-            />
+            <div className="w-13 h-13 rounded-lg overflow-hidden relative">
+              <Image
+                src="/infinite_white_icon.png"
+                alt="Infinite Logo"
+                width={52}
+                height={52}
+                className="object-cover"
+              />
+            </div>
             {!isCollapsed && (
               <span className="text-xl font-bold text-gray-900">Infinite</span>
             )}

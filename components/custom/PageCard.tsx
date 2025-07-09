@@ -58,7 +58,7 @@ const PageCard: React.FC<PageCardProps> = ({
             console.error('Error saving user progress:', error)
         }
     }    // Function to save page data directly to Firestore
-    const savePageToFirestore = async (pageId: string, pageData: any) => {
+    const savePageToFirestore = async (pageId: string, pageData: Record<string, unknown>) => {
         try {
             console.log('Saving page to Firestore:', pageId, pageData)
 

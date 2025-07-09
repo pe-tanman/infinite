@@ -1,4 +1,4 @@
-import { OPENAI_CONFIG, isOpenAIConfigured } from './config'
+import { isOpenAIConfigured } from './config'
 
 interface ContentGenerationOptions {
     title: string

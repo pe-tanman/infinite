@@ -1,17 +1,17 @@
 "use client"
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/components/auth/AuthProvider'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import { db } from '@/lib/firebase/clientApp'
-import { collection, getDocs, query, orderBy, limit, where } from 'firebase/firestore'
+import { collection, getDocs } from 'firebase/firestore'
 import Link from 'next/link'
 
 interface PageData {
   id: string
   title: string
-  createdAt: any
-  lastUpdated: any
+  createdAt: string | Date | { toDate?: () => Date }
+  lastUpdated: string | Date | { toDate?: () => Date }
   viewCount: number
   createdBy: string
   prompt?: string
@@ -21,7 +21,7 @@ interface UserActivity {
   type: 'read' | 'created'
   pageId: string
   title: string
-  timestamp: any
+  timestamp: string | Date | { toDate?: () => Date }
 }
 
 const Dashboard: React.FC = () => {
@@ -32,7 +32,7 @@ const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [debugInfo, setDebugInfo] = useState<string>('')
 
-  const fetchUserData = async () => {
+  const fetchUserData = useCallback(async () => {
     if (!user) return
 
     try {
@@ -68,8 +68,8 @@ const Dashboard: React.FC = () => {
 
       // Sort by timestamp (most recent first)
       activity.sort((a, b) => {
-        const aTime = a.timestamp?.toDate?.() || new Date(0)
-        const bTime = b.timestamp?.toDate?.() || new Date(0)
+        const aTime = getDate(a.timestamp)
+        const bTime = getDate(b.timestamp)
         return bTime.getTime() - aTime.getTime()
       })
 
@@ -83,11 +83,19 @@ const Dashboard: React.FC = () => {
     } finally {
       setLoading(false)
     }
+  }, [user])
+
+  // Helper to get a JS Date from Firestore Timestamp or string
+  function getDate(val: string | Date | { toDate?: () => Date }): Date {
+    if (typeof val === 'string') return new Date(val)
+    if (val instanceof Date) return val
+    if (val && typeof val === 'object' && typeof val.toDate === 'function') return val.toDate()
+    return new Date(0)
   }
 
   useEffect(() => {
     fetchUserData()
-  }, [user])
+  }, [user, fetchUserData])
 
   return (
     <ProtectedRoute>
@@ -200,7 +208,7 @@ const Dashboard: React.FC = () => {
                         <div>
                           <h3 className="font-medium text-gray-900">{activity.title}</h3>
                           <p className="text-sm text-gray-500">
-                            {activity.type === 'created' ? 'Created' : 'Read'} {activity.timestamp?.toDate?.()?.toLocaleDateString() || 'recently'}
+                            {activity.type === 'created' ? 'Created' : 'Read'} {getDate(activity.timestamp).toLocaleDateString() || 'recently'}
                           </p>
                         </div>
                       </div>
