@@ -130,14 +130,6 @@ const NewDocumentPage: React.FC = () => {
     return (
         <div className="max-w-4xl mx-auto">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                        Create New Document
-                    </h1>
-                    <p className="text-gray-600">
-                        Describe what you want to learn and we'll generate a comprehensive document with an AI-powered title and content
-                    </p>
-                </div>
 
                 <form onSubmit={handleCreateDocument} className="space-y-6">
                     {/* Auto-generated Title Preview */}
@@ -157,9 +149,6 @@ const NewDocumentPage: React.FC = () => {
 
                     {/* Prompt Input */}
                     <div>
-                        <label htmlFor="prompt" className="block text-sm font-medium text-gray-700 mb-2">
-                            Learning Prompt *
-                        </label>
                         <textarea
                             id="prompt"
                             value={prompt}
@@ -169,9 +158,6 @@ const NewDocumentPage: React.FC = () => {
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             required
                         />
-                        <p className="mt-1 text-xs text-gray-500">
-                            The more specific your prompt, the better the generated content and title will be.
-                        </p>
                     </div>
 
                     {/* Error Display */}

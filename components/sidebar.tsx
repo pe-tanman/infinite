@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useAuth } from './auth/AuthProvider'
 import { useState } from 'react'
 import UserProfile from './auth/UserProfile'
+import { BiCollection } from "react-icons/bi";
 import SignInModal from './auth/SignInModal'
 
 const Sidebar = () => {
@@ -34,25 +35,14 @@ const Sidebar = () => {
       )
     },
     {
-      name: 'Demo',
-      href: '/demo',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-        </svg>
-      )
-    },
-    {
-      name: 'Cloud Pages',
+      name: 'Pages',
       href: '/cloud',
       icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z" />
-        </svg>
+        <BiCollection />
       )
     },
     {
-      name: 'Docs',
+      name: 'Demo',
       href: '/doc',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -92,15 +82,17 @@ const Sidebar = () => {
       {/* Sidebar */}
       <div className={`
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        fixed lg:relative h-screen bg-white border-r border-gray-200 transition-all duration-300 z-40
+        fixed lg:relative h-screen bg-white border-r border-gray-200 transition-all duration-300 z-40 flex flex-col
         ${isCollapsed ? 'w-16' : 'w-64'}
       `}>
         {/* Logo */}
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-4 border-b border-gray-200 flex-shrink-0">
           <Link href="/" className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">∞</span>
-            </div>
+            <img
+              src="/infinite_white_icon.png"
+              alt="Infinite Logo"
+              className="w-13 h-13 rounded-lg object-cover"
+            />
             {!isCollapsed && (
               <span className="text-xl font-bold text-gray-900">Infinite</span>
             )}
@@ -122,9 +114,8 @@ const Sidebar = () => {
           </svg>
         </button>
 
-        {/* Navigation */}
-        <nav className="p-4 space-y-2 overflow-y-auto h-full pb-24">
-          {/* Main Navigation */}
+        {/* Navigation - Scrollable middle section */}
+        <nav className="flex-1 p-4 overflow-y-auto">
           <div className="space-y-1">
             {navigationItems.map((item) => (
               <Link
@@ -142,40 +133,38 @@ const Sidebar = () => {
               </Link>
             ))}
           </div>
-          
-          {/* Account Section - Always at bottom */}
-          <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200" style={{
-            width: isCollapsed ? '64px' : '256px'
-          }}>
-            {user ? (
-              <div className={`${isCollapsed ? 'flex justify-center' : ''}`}>
-                <UserProfile isCollapsed={isCollapsed} />
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {!isCollapsed && (
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                    Account
-                  </p>
-                )}
-                <button
-                  onClick={() => {
-                    setShowSignInModal(true)
-                    setIsMobileMenuOpen(false)
-                  }}
-                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 transition-all ${isCollapsed ? 'justify-center' : ''
-                    }`}
-                  title={isCollapsed ? 'Sign In' : undefined}
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                  </svg>
-                  {!isCollapsed && <span className="font-medium">Sign In</span>}
-                </button>
-              </div>
-            )}
-          </div>
         </nav>
+
+        {/* Account Section - Fixed at bottom */}
+        <div className="p-4 bg-white border-t border-gray-200 flex-shrink-0">
+          {user ? (
+            <div className={`${isCollapsed ? 'flex justify-center' : ''}`}>
+              <UserProfile isCollapsed={isCollapsed} />
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {!isCollapsed && (
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                  Account
+                </p>
+              )}
+              <button
+                onClick={() => {
+                  setShowSignInModal(true)
+                  setIsMobileMenuOpen(false)
+                }}
+                className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 transition-all ${isCollapsed ? 'justify-center' : ''
+                  }`}
+                title={isCollapsed ? 'Sign In' : undefined}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+                {!isCollapsed && <span className="font-medium">Sign In</span>}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Sign In Modal */}

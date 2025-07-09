@@ -19,6 +19,7 @@ import LoopDiagram from '@/components/custom/LoopDiagram';
 import ImageGallery from '@/components/custom/ImageGallery';
 import ImageChild from '@/components/custom/Image';
 import PageCard from '@/components/custom/PageCard';
+import rehypePrettyCode from "rehype-pretty-code";
 
 const overrideComponents = {
     h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
@@ -64,16 +65,23 @@ const overrideComponents = {
             className="mb-4 leading-relaxed"
         />
     ),
-    code: (props: React.HTMLAttributes<HTMLElement>) => (
-        <code
-            {...props}
-            className="mb-2 leading-relaxed"
-        />
-    ),
+    code: (props: React.HTMLAttributes<HTMLElement>) => {
+        // Handle inline code vs code blocks - rehype-pretty-code handles syntax highlighting
+        const isInline = !props.className?.includes('language-') && !(props as any)['data-language'];
+        return (
+            <code
+                {...props}
+                className={isInline
+                    ? "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-1.5 py-0.5 rounded text-sm font-mono"
+                    : props.className || "font-mono text-sm"
+                }
+            />
+        );
+    },
     pre: (props: React.HTMLAttributes<HTMLPreElement>) => (
         <pre
             {...props}
-            className="mb-2 leading-relaxed"
+            className={`bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto mb-4 border border-gray-700 ${props.className || ''}`}
         />
     ),
     hr: (props: React.HTMLAttributes<HTMLHRElement>) => (
@@ -139,8 +147,22 @@ export default function DynamicPage({ params }: DynamicPageProps) {
                         lastViewed: serverTimestamp()
                     });
 
-                    // Serialize the MDX content
-                    const mdxSource = await serialize(data.content);
+                    // Serialize the MDX content with rehype-pretty-code for beautiful code blocks
+                    const mdxSource = await serialize(data.content, {
+                        mdxOptions: {
+                            rehypePlugins: [
+                                [rehypePrettyCode, {
+                                    theme: {
+                                        dark: 'github-dark',
+                                        light: 'github-light'
+                                    },
+                                    keepBackground: false,
+                                    defaultLang: 'text',
+                                    transformers: [],
+                                }]
+                            ]
+                        }
+                    });
                     setMdxSource(mdxSource);
                 } else {
                     // Check localStorage as fallback
@@ -153,7 +175,21 @@ export default function DynamicPage({ params }: DynamicPageProps) {
                         // Save to Firestore for future access
                         await savePageToFirestore(pageId, data);
 
-                        const mdxSource = await serialize(data.content);
+                        const mdxSource = await serialize(data.content, {
+                            mdxOptions: {
+                                rehypePlugins: [
+                                    [rehypePrettyCode, {
+                                        theme: {
+                                            dark: 'github-dark',
+                                            light: 'github-light'
+                                        },
+                                        keepBackground: false,
+                                        defaultLang: 'text',
+                                        transformers: [],
+                                    }]
+                                ]
+                            }
+                        });
                         setMdxSource(mdxSource);
                     } else {
                         // Generate new page content, potentially with a saved prompt
@@ -165,7 +201,21 @@ export default function DynamicPage({ params }: DynamicPageProps) {
                         localStorage.setItem(`page-${pageId}`, JSON.stringify(newPageData));
                         await savePageToFirestore(pageId, newPageData);
 
-                        const mdxSource = await serialize(newPageData.content);
+                        const mdxSource = await serialize(newPageData.content, {
+                            mdxOptions: {
+                                rehypePlugins: [
+                                    [rehypePrettyCode, {
+                                        theme: {
+                                            dark: 'github-dark',
+                                            light: 'github-light'
+                                        },
+                                        keepBackground: false,
+                                        defaultLang: 'text',
+                                        transformers: [],
+                                    }]
+                                ]
+                            }
+                        });
                         setMdxSource(mdxSource);
                     }
                 }

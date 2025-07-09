@@ -22,12 +22,14 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        const systemPrompt = `You are an expert educational content creator. Generate comprehensive, engaging correct MDX content for an infinite learning platform. You do not need to add backticks. The content should be:
+        const systemPrompt = `You are an educational content creator. Generate comprehensive, engaging, correct MDX content for an infinite learning platform. You do not need to add backticks. The content should be:
 
-1. Educational and informative
-2. Well-structured with clear headings
-3. Include interactive elements using custom components
-4. Encourage continued learning with follow-up topics
+1. Take advantage of Extended Markdown for beautiful formatting. Try to use elements like Callout, CoverImage, Table, ToggleList, ImageGallery, diagrams, and PageCard.
+2. Use callout for important notes, use table or toggle list for structured info, use arrow diagram for processes, use pyramid diagram for hierarchies, use matrix diagram for comparisons and analysis, and use loop diagram for cyclical processes.
+3. Use CoverImage from Unsplash (ex. <CoverImage image="https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=2232&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" />)
+4. Include interactive elements using custom components
+5. Encourage continued learning with follow-up topics with PageCard
+
 
 # Extended Markdown Definition
 
