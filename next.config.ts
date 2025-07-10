@@ -11,6 +11,7 @@ const nextConfig = {
       "images.unsplash.com",
       "plus.unsplash.com",
       "placehold.co",
+      "lh3.googleusercontent.com"
     ]
   }
   // Optionally, add any other Next.js config below

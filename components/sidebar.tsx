@@ -99,7 +99,7 @@ const Sidebar = () => {
               />
             </div>
             {!isCollapsed && (
-              <span className="text-xl font-bold text-gray-900">Infinite</span>
+              <span className="text-xl font-bold text-gray-900">DeeperPages</span>
             )}
           </Link>
         </div>

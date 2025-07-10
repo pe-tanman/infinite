@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
 3. Use CoverImage from Unsplash (ex. <CoverImage image="https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=2232&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" />)
 4. Include interactive elements using custom components
 5. Encourage continued learning with follow-up topics with PageCard
+6. Use Emoji to enhance the readability
 
 
 # Extended Markdown Definition
@@ -176,52 +177,48 @@ yAxisLabels={["High Effort", "Low Effort"]}
 
         console.log('Making OpenAI API request with key:', apiKey.substring(0, 20) + '...')
 
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        const response = await fetch('https://api.openai.com/v1/responses', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${apiKey}`,
             },
             body: JSON.stringify({
-                model: 'gpt-4o-mini',
-                messages: [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: userPrompt }
-                ],
-                max_tokens: 2000,
-                temperature: 0.7,
+                model: 'gpt-4.1',
+                tools: [{ "type": "web_search_preview" }],
+                input: userPrompt + systemPrompt,
             }),
         })
-
         console.log('OpenAI API response status:', response.status)
 
         if (!response.ok) {
             const errorText = await response.text()
             console.error('OpenAI API error response:', errorText)
             return NextResponse.json(
-                { error: `OpenAI API error: ${response.status} ${response.statusText}` },
-                { status: response.status }
+            { error: `OpenAI API error: ${response.status} ${response.statusText}` },
+            { status: response.status }
             )
         }
 
         const data = await response.json()
 
-        if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+        // The /v1/responses API returns the generated content directly in the 'data' object
+        if (!data || !data.output) {
             return NextResponse.json(
-                { error: 'Invalid response from OpenAI API' },
-                { status: 500 }
+            { error: 'Invalid response from OpenAI API' },
+            { status: 500 }
             )
         }
 
         return NextResponse.json({
-            content: data.choices[0].message.content
+            content: data.output
         })
 
-    } catch (error) {
+        } catch (error) {
         console.error('Error in generate-content API:', error)
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }
         )
+        }
     }
-}

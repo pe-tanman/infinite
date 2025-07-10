@@ -3,7 +3,7 @@
 
 export const OPENAI_CONFIG = {
     apiKey: process.env.OPENAI_API_KEY || '', // Only use server-side env var
-    model: 'gpt-4.1',
+    model: 'gpt-4o-search-preview',
     maxTokens: 2000,
     temperature: 0.7,
 }

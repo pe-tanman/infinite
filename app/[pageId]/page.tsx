@@ -20,6 +20,7 @@ import ImageGallery from '@/components/custom/ImageGallery';
 import ImageChild from '@/components/custom/Image';
 import PageCard from '@/components/custom/PageCard';
 import rehypePrettyCode from "rehype-pretty-code";
+import remarkGfm from "remark-gfm"; // Import remark-gfm
 
 const overrideComponents = {
     h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
@@ -164,6 +165,7 @@ export default function DynamicPage({ params }: DynamicPageProps) {
                     // Serialize the MDX content with rehype-pretty-code for beautiful code blocks
                     const mdxSource = await serialize(data.content, {
                         mdxOptions: {
+                            remarkPlugins: [remarkGfm], // Enable GitHub Flavored Markdown
                             rehypePlugins: [
                                 [rehypePrettyCode, {
                                     theme: {
