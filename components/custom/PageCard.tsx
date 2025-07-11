@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '../auth/AuthProvider'
 import { db } from '@/lib/firebase/clientApp'
@@ -8,7 +8,8 @@ import { generateContentWithOpenAI } from '@/lib/openai/contentGenerator'
 interface PageCardProps {
     title: string
     excerpt: string
-    coverImage?: string
+    coverImageKeywords: string[] // Optional keywords for cover image
+    coverImage?: string // Optional prop for custom cover image URL
     prompt: string // Optional prop for custom prompt
     className?: string
     maxWords?: number
@@ -18,7 +19,7 @@ const PageCard: React.FC<PageCardProps> = ({
     title,
     excerpt,
     prompt,
-    coverImage,
+    coverImageKeywords,
     className,
     maxWords = 20,
 }) => {
@@ -26,6 +27,42 @@ const PageCard: React.FC<PageCardProps> = ({
     const generateContent = true // Flag to enable auto-content generation
     const [isGenerating, setIsGenerating] = useState(false)
     const [generationStatus, setGenerationStatus] = useState<'idle' | 'generating' | 'success' | 'error'>('idle')
+    const [coverImage, setCoverImage] = useState<string | null>(null)
+    const [coverImageLink, setCoverImageLink] = useState<string | null>(null)
+    const [imageLoading, setImageLoading] = useState(true)
+
+    // Function to fetch cover image from Unsplash API
+    const fetchCoverImage = async () => {
+        try {
+            setImageLoading(true)
+            // Create search query from title and coverImageKeywords
+            const titleKeywords = title.toLowerCase().split(' ').filter(word => word.length > 2).slice(0, 3)
+            const keywords = coverImageKeywords && coverImageKeywords.length > 0 
+                ? coverImageKeywords.slice(0, 3) 
+                : titleKeywords
+            const searchQuery = keywords.join(' ')
+
+            const response = await fetch(`/api/unsplash?query=${encodeURIComponent(searchQuery)}`)
+            
+            if (response.ok) {
+                const imageData = await response.json()
+                setCoverImage(imageData.urls.regular)
+                setCoverImageLink(imageData.links?.html || `https://unsplash.com/photos/${imageData.id}`)
+            }
+        } catch (error) {
+            console.error('Error fetching cover image:', error)
+            // Use fallback image on error
+            setCoverImage('https://images.unsplash.com/photo-1557804506-669a67965ba0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=400&q=80')
+            setCoverImageLink('https://unsplash.com')
+        } finally {
+            setImageLoading(false)
+        }
+    }
+
+    // Fetch cover image on component mount
+    useEffect(() => {
+        fetchCoverImage()
+    }, [title, coverImageKeywords]) // eslint-disable-line react-hooks/exhaustive-deps
 
     // Function to truncate text to first n words
     const truncateToWords = (text: string, wordCount: number) => {
@@ -155,7 +192,9 @@ const PageCard: React.FC<PageCardProps> = ({
             >
                 {/* Background - either cover image or gradient */}
                 <div className="absolute inset-0">
-                    {coverImage ? (
+                    {imageLoading ? (
+                        <div className="w-full h-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 dark:from-blue-600 dark:via-purple-600 dark:to-pink-600 animate-pulse" />
+                    ) : coverImage ? (
                         <div
                             className="w-full h-full bg-cover bg-center bg-no-repeat"
                             style={{ backgroundImage: `url(${coverImage})` }}
@@ -235,6 +274,11 @@ const PageCard: React.FC<PageCardProps> = ({
 
 // Function to generate page content based on title, excerpt, and prompt
 async function generatePageContent(title: string, excerpt: string, prompt: string): Promise<string> {
+    // Extract keywords from title for Unsplash API
+    const titleKeywords = title.toLowerCase().split(' ').filter(word => word.length > 2);
+    const excerptKeywords = excerpt.toLowerCase().split(' ').filter(word => word.length > 3).slice(0, 3);
+    const combinedKeywords = [...titleKeywords, ...excerptKeywords].slice(0, 5); // Limit to 5 keywords
+    
     const content = await generateContentWithOpenAI({
         title,
         prompt,

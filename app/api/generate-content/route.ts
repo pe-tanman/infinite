@@ -22,11 +22,21 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        const systemPrompt = `You are an educational content creator. Generate comprehensive, engaging, correct MDX content for an infinite learning platform. You do not need to add backticks. The content should be:
+        const systemPrompt = `You are an educational content creator. Generate comprehensive, engaging, correct MDX content for an infinite learning platform. You do not need to add backticks.
+
+IMPORTANT: Generate ONLY valid MDX content. Follow these rules strictly:
+- Use valid JSX syntax for all components
+- All custom components must be properly closed
+- Use {/* */} for comments instead of HTML comments
+- Escape special characters properly
+- Do not use invalid characters before component names
+- Test your MDX syntax before responding
+
+The content should be:
 
 1. Take advantage of Extended Markdown for beautiful formatting. Try to use elements like Callout, CoverImage, Table, ToggleList, ImageGallery, diagrams, and PageCard.
 2. Actively use these elements flexibly right for the purpose: callout for important notes; table or toggle list for structured info; arrow diagram for processes; pyramid diagram for hierarchies; matrix diagram for comparisons and analysis; loop diagram for cyclical processes.
-3. Use CoverImage from Unsplash (ex. <CoverImage image="https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=2232&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" />)
+3. Use CoverImage at the beginning of the document (ex. <CoverImage keywords={["blockchain", "abstract"]} />)
 4. Include interactive elements using custom components
 5. Encourage continued learning with follow-up topics with PageCard
 6. Use Emoji to enhance the readability
@@ -34,13 +44,10 @@ export async function POST(request: NextRequest) {
 
 # Extended Markdown Definition
 
-
 #### 1. Default Markdown
-
 Use default markdown scheme for better text.
 
-#### 2.  Custom Self-Closing Blocks
-
+#### 2. Custom Self-Closing Blocks
 These components are defined on a single line and do not contain other blocks.
 
 **Callout**
@@ -49,10 +56,9 @@ These components are defined on a single line and do not contain other blocks.
 ex. <Callout type="info" content="**Analogy:** Imagine a shared Google Doc where every edit is tracked, visible to everyone, and can never be deleted. Everyone has the same version, and changes are only accepted if everyone agrees." />
 
 **CoverImage**
-ex.
-<CoverImage image="https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=2232&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" />
+<CoverImage keywords={["blockchain", "abstract"]} />
 
-Use cover image in the beginning of the document. Use image from unsplash.
+Use cover image in the beginning of the document. Use image with keywords to represent the document.
 
 **Table**
 ex. 
@@ -90,10 +96,10 @@ This links each block to the one before it, forming the "chain."
 **ImageGallery**
 
 <ImageGallery>
-  <ImageChild src='https://images.unsplash.com/photo-1605792657660-596af9009e82?q=80&w=1702&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' alt='Blockchain concept visualized digitally' />
-  <ImageChild src='https://plus.unsplash.com/premium_photo-1675018587778-67888c112bd8?q=80&w=1035&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' alt='Digital ledgers and chains' />
-  <ImageChild src='https://images.unsplash.com/photo-1676907820329-d74d048a6969?q=80&w=1035&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' alt='Network of nodes and blocks' />
-  <ImageChild src='https://images.unsplash.com/photo-1670269069776-a1337c703669?q=80&w=2128&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3Dp' alt='Code and encryption concept' />
+  <ImageChild keywords={["bitcoin"]} alt='Blockchain concept visualized digitally' />
+  <ImageChild keywords={["ethereum"]} alt='Digital ledgers and chains' />
+  <ImageChild keywords={["network", "nodes", "blocks"]} alt='Network of nodes and blocks' />
+  <ImageChild keywords={["code", "encryption"]} alt='Code and encryption concept' />
 </ImageGallery>
 
 **PageCard**
@@ -103,7 +109,7 @@ include prompt to generate next page's content.
 <PageCard 
     title="Database Design" 
     excerpt="Understand how to structure and optimize databases for modern applications"
-    coverImage="https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=2121&auto=format&fit=crop"
+    coverImageKeywords={["database", "design", "optimization"]}
     prompt="Write a comprehensive guide on database design, covering key concepts, best practices, and practical examples. Include interactive elements and encourage further learning with related topics."
 />
 

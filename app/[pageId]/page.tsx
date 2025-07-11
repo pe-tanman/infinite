@@ -185,8 +185,7 @@ export default function DynamicPage({ params }: DynamicPageProps) {
                     // Check localStorage as fallback
                     const localData = localStorage.getItem(`page-${pageId}`);
 
-                    if (localData)
-                    {
+                    if (localData) {
                         console.log(`Loading page data from localStorage for pageId: ${pageId}`);
                         const data = JSON.parse(localData);
                         setPageData(data);
@@ -214,7 +213,7 @@ export default function DynamicPage({ params }: DynamicPageProps) {
                         console.log(`No localStorage data found for pageId: ${pageId}`);
                         // Generate new page content, potentially with a saved prompt
                         // Check if we have any prompt data in localStorage or from URL
-                        const newPageData = await generatePageContent(pageId);
+                        const newPageData = await generatePageContent(pageId, undefined);
                         setPageData(newPageData);
 
                         // Save to both localStorage and Firestore
