@@ -51,7 +51,10 @@ const NewDocumentPage: React.FC = () => {
 
             // Generate page ID from title and timestamp
             const timestamp = new Date().toISOString()
-            const pageId = title.toLowerCase().replace(/\s+/g, '-') + '-' + timestamp.split('T')[0]
+            const rawPageId = title.toLowerCase().replace(/\s+/g, '-') + '-' + timestamp
+            // Hash the rawPageId to create a shorter, unique pageId
+            const pageId = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(rawPageId))
+                .then(buf => Array.from(new Uint8Array(buf)).map(x => x.toString(16).padStart(2, '0')).join('').slice(0, 16));
 
             let content: string = `# ${title}\n\n${prompt}\n\nThis is a fallback content generated without AI.`
 
@@ -72,19 +75,28 @@ const NewDocumentPage: React.FC = () => {
                 }
             }
 
+            let coverImageLink: string | undefined = undefined;
+            const coverImageMatch = content.match(/<CoverImage\s+image=["']([^"']+)["']/i);
+            if (coverImageMatch) {
+                coverImageLink = coverImageMatch[1];
+            }
+
+            console.log('Cover image link:', coverImageLink || 'Undefined')
             // Prepare page data
             const pageData = {
                 title,
                 content,
                 prompt,
                 excerpt: `AI-generated content from: ${prompt}`,
+                coverImage: coverImageLink || 'https://images.unsplash.com/photo-1554034483-04fda0d3507b?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
                 timestamp,
                 createdBy: user?.uid || 'anonymous',
                 viewCount: 0,
-                public: true,
+                public: false,
                 createdAt: serverTimestamp(),
                 lastUpdated: serverTimestamp()
             }
+            console.log('Page data prepared:', pageData)
 
             // Save to Firestore
             await setDoc(doc(db, 'pages', pageId), pageData)

@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
         const systemPrompt = `You are an educational content creator. Generate comprehensive, engaging, correct MDX content for an infinite learning platform. You do not need to add backticks. The content should be:
 
 1. Take advantage of Extended Markdown for beautiful formatting. Try to use elements like Callout, CoverImage, Table, ToggleList, ImageGallery, diagrams, and PageCard.
-2. Use callout for important notes, use table or toggle list for structured info, use arrow diagram for processes, use pyramid diagram for hierarchies, use matrix diagram for comparisons and analysis, and use loop diagram for cyclical processes.
+2. Actively use these elements flexibly right for the purpose: callout for important notes; table or toggle list for structured info; arrow diagram for processes; pyramid diagram for hierarchies; matrix diagram for comparisons and analysis; loop diagram for cyclical processes.
 3. Use CoverImage from Unsplash (ex. <CoverImage image="https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=2232&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" />)
 4. Include interactive elements using custom components
 5. Encourage continued learning with follow-up topics with PageCard
@@ -68,6 +68,7 @@ ex.
 
 These components have a start and an end tag and contain other ElementMarkdown content.
 **ToggleList**
+Be caurereful with the toggle list, <ToggleList> is not a valid element, use <Toggle> instead.
 ex.
 <Toggle label="What is a Block?">
 A block consists of three main parts:
@@ -97,11 +98,13 @@ This links each block to the one before it, forming the "chain."
 
 **PageCard**
 coverImage must be from unsplash.
+include prompt to generate next page's content.
 
 <PageCard 
     title="Database Design" 
     excerpt="Understand how to structure and optimize databases for modern applications"
     coverImage="https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=2121&auto=format&fit=crop"
+    prompt="Write a comprehensive guide on database design, covering key concepts, best practices, and practical examples. Include interactive elements and encourage further learning with related topics."
 />
 
 

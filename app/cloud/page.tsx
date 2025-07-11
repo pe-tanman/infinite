@@ -17,6 +17,7 @@ interface CloudPage {
     viewCount: number
     createdBy: string
     public: boolean
+    excerpt?: string
 }
 
 const CloudPages: React.FC = () => {
@@ -179,7 +180,10 @@ const CloudPages: React.FC = () => {
 
                                         {/* Excerpt */}
                                         <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                                            {page.content.replace(/[#*`]/g, '').substring(0, 150)}...
+                                            {typeof page.content === 'string'
+                                                ? page.content.replace(/[#*`]/g, '').substring(0, 150) + '...'
+                                                : page.excerpt || 'No content available'
+                                            }
                                         </p>
 
                                         {/* Metadata */}

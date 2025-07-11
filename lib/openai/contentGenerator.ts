@@ -36,7 +36,9 @@ export async function generateContentWithOpenAI(options: ContentGenerationOption
         }
 
         const data = await response.json()
-        const generatedText = data.content[0].content[0].text
+        console.log('Data generated successfully:', data)
+        const lastContent = data.content[data.content.length - 1]
+        const generatedText = lastContent.content[lastContent.content.length - 1].text
         console.log('Content generated successfully:', generatedText)
         return generatedText
     } catch (error) {

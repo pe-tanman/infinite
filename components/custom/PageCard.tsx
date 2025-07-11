@@ -1,9 +1,9 @@
-import React from 'react'
-import Link from 'next/link'
+import React, { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '../auth/AuthProvider'
 import { db } from '@/lib/firebase/clientApp'
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { generateContentWithOpenAI } from '@/lib/openai/contentGenerator'
 
 interface PageCardProps {
     title: string
@@ -24,6 +24,8 @@ const PageCard: React.FC<PageCardProps> = ({
 }) => {
     const { user } = useAuth()
     const generateContent = true // Flag to enable auto-content generation
+    const [isGenerating, setIsGenerating] = useState(false)
+    const [generationStatus, setGenerationStatus] = useState<'idle' | 'generating' | 'success' | 'error'>('idle')
 
     // Function to truncate text to first n words
     const truncateToWords = (text: string, wordCount: number) => {
@@ -36,9 +38,9 @@ const PageCard: React.FC<PageCardProps> = ({
     const defaultExcerpt = "Learn the fundamentals of React development including components, state management, hooks, and modern patterns for building scalable applications."
     const finalExcerpt = excerpt || defaultExcerpt
 
-    // Generate page ID from title and timestamp
+    // Generate page ID from title and timestamp (synchronously)
     const currentTimestamp = new Date().toISOString()
-    const nextPageId = title.toLowerCase().replace(/\s+/g, '-') + '-' + currentTimestamp.split('T')[0]
+    const rawNextPageId = title.toLowerCase().replace(/\s+/g, '-') + '-' + currentTimestamp.split('T')[0]
 
     const truncatedExcerpt = truncateToWords(finalExcerpt, maxWords)
 
@@ -80,22 +82,30 @@ const PageCard: React.FC<PageCardProps> = ({
     };
 
     // Function to prepare page data when card is clicked
-    const handleCardClick = async () => {
-        if (generateContent) {
+    const handleCardClick = async (e: React.MouseEvent) => {
+        e.preventDefault() // Prevent default link navigation
+
+        if (generateContent && !isGenerating) {
+            setIsGenerating(true)
+            setGenerationStatus('generating')
             console.log('PageCard clicked, generating content for:', title)
 
-            const pageData = {
-                title: title,
-                content: generatePageContent(title, finalExcerpt, prompt),
-                coverImage: coverImage,
-                timestamp: currentTimestamp,
-                createdBy: user?.uid || 'anonymous',
-                viewCount: 0,
-                prompt: prompt || `Learn about ${title}: ${finalExcerpt}`,
-                excerpt: finalExcerpt
-            }
-
             try {
+                // Generate the hashed page ID
+                const nextPageId = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(rawNextPageId))
+                    .then(buf => Array.from(new Uint8Array(buf)).map(x => x.toString(16).padStart(2, '0')).join('').slice(0, 16));
+
+                const pageData = {
+                    title: title,
+                    content: await generatePageContent(title, finalExcerpt, prompt),
+                    coverImage: coverImage,
+                    timestamp: currentTimestamp,
+                    createdBy: user?.uid || 'anonymous',
+                    viewCount: 0,
+                    prompt: prompt || `Learn about ${title}: ${finalExcerpt}`,
+                    excerpt: finalExcerpt
+                }
+
                 // Save directly to Firestore (primary storage)
                 await savePageToFirestore(nextPageId, pageData);
                 console.log('Page saved successfully, navigating to:', nextPageId)
@@ -107,22 +117,39 @@ const PageCard: React.FC<PageCardProps> = ({
                 if (user) {
                     await saveUserProgress(nextPageId, title)
                 }
+
+                setGenerationStatus('success')
+
+                // Short delay to show success state
+                setTimeout(() => {
+                    window.location.href = `./${nextPageId}`
+                }, 800)
+
             } catch (error) {
-                console.error('Failed to save page:', error)
-                // Still save locally and proceed
-                localStorage.setItem(`page-${nextPageId}`, JSON.stringify(pageData))
+                console.error('Failed to generate/save page:', error)
+                setGenerationStatus('error')
+
+                // Reset after showing error
+                setTimeout(() => {
+                    setIsGenerating(false)
+                    setGenerationStatus('idle')
+                }, 2000)
             }
         }
     }
 
     return (
-        <Link href={`./${nextPageId}`} className="block group" onClick={handleCardClick}>
+        <div className={cn(
+            "block group cursor-pointer transition-opacity duration-200",
+            isGenerating && "cursor-not-allowed opacity-90"
+        )} onClick={handleCardClick}>
             <div
                 className={cn(
                     "relative overflow-hidden rounded-xl transition-all duration-300 ease-out",
                     "hover:scale-[1.02] hover:shadow-xl hover:shadow-black/10",
                     "border border-gray-200/50 dark:border-gray-700/50",
                     "min-h-[200px] flex flex-col mt-5",
+                    isGenerating && "transform-none shadow-none", // Disable hover effects when generating
                     className
                 )}
             >
@@ -154,97 +181,66 @@ const PageCard: React.FC<PageCardProps> = ({
                             {truncatedExcerpt}
                         </p>
 
-                        {/* Read more indicator */}
-                        <div className="flex items-center text-white/80 text-xs font-medium group-hover:text-white transition-colors duration-200">
-                            <span>Read more</span>
-                            <svg
-                                className="ml-1 w-3 h-3 transform group-hover:translate-x-1 transition-transform duration-200"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                        </div>
+                        {/* Read more indicator or status */}
+                        {generationStatus === 'idle' && (
+                            <div className="flex items-center text-white/80 text-xs font-medium group-hover:text-white transition-colors duration-200">
+                                <span>Read more</span>
+                                <svg
+                                    className="ml-1 w-3 h-3 transform group-hover:translate-x-1 transition-transform duration-200"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                        )}
+
+                        {generationStatus === 'generating' && (
+                            <div className="flex items-center text-white text-xs font-medium">
+                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span>Generating content...</span>
+                            </div>
+                        )}
+
+                        {generationStatus === 'success' && (
+                            <div className="flex items-center text-green-300 text-xs font-medium">
+                                <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span>Content ready! Redirecting...</span>
+                            </div>
+                        )}
+
+                        {generationStatus === 'error' && (
+                            <div className="flex items-center text-red-300 text-xs font-medium">
+                                <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Failed to generate. Try again.</span>
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 {/* Hover effect overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </div>
-        </Link>
+        </div>
     )
 }
 
 // Function to generate page content based on title, excerpt, and prompt
-function generatePageContent(title: string, excerpt: string, prompt?: string): string {
-    const mainContent = prompt || excerpt;
-
-    return `# ${title}
-
-${mainContent}
-
-## Deep Dive into ${title}
-
-This comprehensive guide covers everything you need to know about **${title}**. The content is automatically saved to Firebase Firestore, ensuring it's available across all your devices and sessions.
-
-## Key Concepts
-
-Understanding ${title} requires grasping several fundamental concepts:
-
-- **Foundation**: Core principles that underpin ${title}
-- **Application**: Practical uses and real-world scenarios
-- **Advanced Topics**: Complex concepts and edge cases
-- **Best Practices**: Industry standards and recommended approaches
-
-## Interactive Learning
-
-<Callout type="info">
-This content is dynamically generated and stored in the cloud. You can access it from any device at any time.
-</Callout>
-
-<Toggle summary="Expand for detailed examples">
-
-### Practical Examples
-
-Here are some practical examples related to ${title}:
-
-1. **Getting Started**: Basic implementation and setup
-2. **Common Patterns**: Frequently used patterns and solutions
-3. **Troubleshooting**: Common issues and their solutions
-4. **Performance**: Optimization techniques and best practices
-
-</Toggle>
-
-## Continue Your Learning Journey
-
-Explore related topics to build a comprehensive understanding:
-
-<PageCard 
-    title="Introduction to ${title}"
-    excerpt="Start with the basics and build a solid foundation in ${title}"
-    prompt="Learn the fundamental concepts and principles of ${title}, starting from the ground up with clear explanations and practical examples."
-/>
-
-<PageCard 
-    title="Advanced ${title} Techniques"
-    excerpt="Master advanced concepts and professional-grade techniques"
-    prompt="Explore advanced techniques, patterns, and methodologies used by professionals working with ${title}."
-/>
-
-<PageCard 
-    title="${title} in Practice"
-    excerpt="Real-world applications and case studies"
-    prompt="Discover how ${title} is applied in real-world scenarios through detailed case studies and practical examples."
-/>
-
-## Summary
-
-${title} is a fascinating topic with many practical applications. This page provides a comprehensive overview while connecting to related concepts for deeper exploration.
-
----
-
-*This page was automatically generated and saved to Firebase Firestore on ${new Date().toLocaleDateString()}. Content is synchronized across all devices.*`;
+async function generatePageContent(title: string, excerpt: string, prompt: string): Promise<string> {
+    const content = await generateContentWithOpenAI({
+        title,
+        prompt,
+        includeInteractiveElements: true,
+        includeNextSteps: true
+    });
+    return content;
 }
-
-export default PageCard
+export default PageCard;

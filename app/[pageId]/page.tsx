@@ -151,6 +151,7 @@ export default function DynamicPage({ params }: DynamicPageProps) {
 
                 // First try to get from Firestore
                 const pageDoc = await getDoc(doc(db, 'pages', pageId));
+                console.log('Firestore document fetched:', pageDoc.exists());
 
                 if (pageDoc.exists()) {
                     const data = pageDoc.data() as PageData;
@@ -184,7 +185,9 @@ export default function DynamicPage({ params }: DynamicPageProps) {
                     // Check localStorage as fallback
                     const localData = localStorage.getItem(`page-${pageId}`);
 
-                    if (localData) {
+                    if (localData)
+                    {
+                        console.log(`Loading page data from localStorage for pageId: ${pageId}`);
                         const data = JSON.parse(localData);
                         setPageData(data);
 
@@ -208,6 +211,7 @@ export default function DynamicPage({ params }: DynamicPageProps) {
                         });
                         setMdxSource(mdxSource);
                     } else {
+                        console.log(`No localStorage data found for pageId: ${pageId}`);
                         // Generate new page content, potentially with a saved prompt
                         // Check if we have any prompt data in localStorage or from URL
                         const newPageData = await generatePageContent(pageId);
@@ -290,10 +294,6 @@ export default function DynamicPage({ params }: DynamicPageProps) {
 
     return (
         <div className="bg-white px-24 py-16 rounded-2xl max-w-6xl mx-auto my-15 shadow-sm" style={{ maxHeight: '95vh', overflowY: 'auto' }}>
-            {pageData.coverImage && (
-                <CoverImage image={pageData.coverImage} alt={pageData.title} />
-            )}
-
             {/* Page metadata */}
             <div className="mb-6 text-sm text-gray-500 border-b border-gray-200 pb-4">
                 <div className="flex items-center justify-between">
