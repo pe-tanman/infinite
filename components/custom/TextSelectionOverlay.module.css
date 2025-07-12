@@ -1,0 +1,67 @@
+/* TextSelectionOverlay animations */
+.text-selection-overlay {
+    animation: fadeInUp 0.2s ease-out forwards;
+    transform: translateY(10px);
+    opacity: 0;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.text-selection-overlay.entering {
+    animation: fadeInUp 0.2s ease-out forwards;
+}
+
+.text-selection-overlay.exiting {
+    animation: fadeOutDown 0.15s ease-in forwards;
+}
+
+@keyframes fadeOutDown {
+    to {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+}
+
+/* Highlight selected text effect */
+.text-selection-highlight {
+    background-color: rgba(59, 130, 246, 0.1);
+    border-radius: 2px;
+    transition: background-color 0.2s ease;
+}
+
+.text-selection-highlight:hover {
+    background-color: rgba(59, 130, 246, 0.15);
+}
+
+/* Smooth transitions for overlay modes */
+.overlay-mode-transition {
+    transition: all 0.3s ease;
+}
+
+/* Loading state styles */
+.processing-overlay {
+    position: relative;
+    pointer-events: none;
+}
+
+.processing-overlay::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(1px);
+    border-radius: inherit;
+    z-index: 1;
+}
+
+.dark .processing-overlay::before {
+    background: rgba(0, 0, 0, 0.7);
+}

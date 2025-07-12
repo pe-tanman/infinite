@@ -77,6 +77,37 @@ const overrideComponents = {
             className="border-gray-400 mb-2"
         />
     ),
+
+    thead: (props: React.HTMLAttributes<HTMLTableSectionElement>) => (
+        <thead
+            {...props}
+            className="bg-gray-50"
+        />
+    ),
+    tbody: (props: React.HTMLAttributes<HTMLTableSectionElement>) => (
+        <tbody
+            {...props}
+            className="divide-y divide-gray-200"
+        />
+    ),
+    th: (props: React.HTMLAttributes<HTMLTableCellElement>) => (
+        <th
+            {...props}
+            className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider border-b border-gray-300"
+        />
+    ),
+    td: (props: React.HTMLAttributes<HTMLTableCellElement>) => (
+        <td
+            {...props}
+            className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-b border-gray-200"
+        />
+    ),
+    tr: (props: React.HTMLAttributes<HTMLTableRowElement>) => (
+        <tr
+            {...props}
+            className="hover:bg-gray-50 transition-colors"
+        />
+    ),
 };
 
 export default function TestPage() {
@@ -96,4 +127,4 @@ export default function TestPage() {
             <MDXRemote {...props.source} components={{ ...overrideComponents, Callout, CoverImage, Toggle, ArrowDiagram, DiagramCard, PyramidDiagram, MatrixDiagram, LoopDiagram, ImageGallery, ImageChild, PageCard }} />
         </div>
     );
-  }
+}

@@ -1,6 +1,7 @@
 // components/custom/CoverImage.tsx
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { getCachedImage, setCachedImage } from '@/lib/utils/imageCache';
 
 interface CoverImageProps {
     keywords?: string[] | string; // Accept both array and string formats
@@ -35,7 +36,7 @@ const CoverImage: React.FC<CoverImageProps> = ({ keywords, alt }) => {
         return keywords;
     };
 
-    // Function to fetch image from Unsplash
+    // Function to fetch image from Unsplash with caching
     const fetchUnsplashImage = async (keywords: string[]) => {
         try {
             setIsLoading(true);
@@ -44,7 +45,16 @@ const CoverImage: React.FC<CoverImageProps> = ({ keywords, alt }) => {
             // Join keywords for search query
             const query = keywords.join(' ');
 
+            // Check cache first
+            const cachedImage = getCachedImage(query);
+            if (cachedImage) {
+                console.log(`Using cached cover image for query: ${query}`);
+                setImageUrl(cachedImage.data.urls.regular);
+                setIsLoading(false);
+                return;
+            }
 
+            console.log(`Fetching new cover image for query: ${query}`);
             const response = await fetch(`/api/unsplash?query=${encodeURIComponent(query)}`);
 
             if (!response.ok) {
@@ -56,6 +66,9 @@ const CoverImage: React.FC<CoverImageProps> = ({ keywords, alt }) => {
             if (data && data.urls && data.urls.regular) {
                 console.log('Fetched image data:', data);
                 setImageUrl(data.urls.regular);
+
+                // Cache the result
+                setCachedImage(query, data);
             } else {
                 throw new Error('No image found');
             }

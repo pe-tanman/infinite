@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import { checkOpenAIAvailability } from '@/lib/openai/config'
+import ImageCacheManager from '@/components/custom/ImageCacheManager'
 
 const SettingsPage: React.FC = () => {
     const [apiKey, setApiKey] = useState('')
@@ -99,6 +100,35 @@ const SettingsPage: React.FC = () => {
                                 </div>
                             </div>
 
+                            {/* Interactive Text Selection Demo */}
+                            <div className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+                                <h3 className="text-lg font-semibold text-blue-900 mb-4">Interactive Editing Features</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-800">
+                                    <div>
+                                        <h4 className="font-semibold mb-2">Text Selection</h4>
+                                        <p>Select any text to edit with AI or generate PageCards</p>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-semibold mb-2">Block Editing</h4>
+                                        <p>Edit individual blocks - each block is one complete component or element (paragraph, heading, code block, custom component, etc.)</p>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-semibold mb-2">Keyboard Shortcuts</h4>
+                                        <div className="space-y-1">
+                                            <p><kbd className="px-1 py-0.5 bg-blue-200 rounded text-xs">Ctrl+B</kbd> Block Edit Mode</p>
+                                            <p><kbd className="px-1 py-0.5 bg-blue-200 rounded text-xs">Ctrl+E</kbd> Full Edit Mode</p>
+                                            <p><kbd className="px-1 py-0.5 bg-blue-200 rounded text-xs">Ctrl+S</kbd> Save Changes</p>
+                                            <p><kbd className="px-1 py-0.5 bg-blue-200 rounded text-xs">Escape</kbd> Cancel Edit</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-semibold mb-2">AI Integration</h4>
+                                        <p>Generate content with OpenAI integration</p>
+                                    </div>
+                                </div>
+                            </div>
+
+
                             {/* API Key Configuration */}
                             <div>
                                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
@@ -168,6 +198,11 @@ const SettingsPage: React.FC = () => {
                                 <p className="mt-2 text-xs text-blue-700">
                                     Note: API usage may incur costs based on OpenAI&apos;s pricing.
                                 </p>
+                            </div>
+
+                            {/* Image Cache Management */}
+                            <div>
+                                <ImageCacheManager />
                             </div>
 
                             {/* Usage Information */}

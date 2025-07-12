@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// In-memory cache for Unsplash images
+const imageCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
@@ -11,6 +15,18 @@ export async function GET(request: NextRequest) {
                 { status: 400 }
             );
         }
+
+        // Check cache first
+        const cacheKey = query.toLowerCase().trim();
+        const cachedResult = imageCache.get(cacheKey);
+        const now = Date.now();
+
+        if (cachedResult && (now - cachedResult.timestamp) < CACHE_DURATION) {
+            console.log(`Cache hit for query: ${query}`);
+            return NextResponse.json(cachedResult.data);
+        }
+
+        console.log(`Cache miss for query: ${query}, fetching from Unsplash...`);
 
         const accessKey = process.env.UNSPLASH_ACCESS_KEY;
 
@@ -40,11 +56,25 @@ export async function GET(request: NextRequest) {
         const data = await unsplashResponse.json();
 
         if (data.results && data.results.length > 0) {
+            // Cache the result
+            const imageData = data.results[0];
+            imageCache.set(cacheKey, { data: imageData, timestamp: now });
+
+            // Clean up old cache entries periodically
+            if (imageCache.size > 100) {
+                const cutoffTime = now - CACHE_DURATION;
+                for (const [key, value] of imageCache.entries()) {
+                    if (value.timestamp < cutoffTime) {
+                        imageCache.delete(key);
+                    }
+                }
+            }
+
             // Return the first image result
-            return NextResponse.json(data.results[0]);
+            return NextResponse.json(imageData);
         } else {
-            // No results found, return a fallback
-            return NextResponse.json({
+            // No results found, return a fallback (also cache it)
+            const fallbackData = {
                 id: 'fallback',
                 urls: {
                     regular: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=400&q=80',
@@ -55,7 +85,10 @@ export async function GET(request: NextRequest) {
                 user: {
                     name: 'Unsplash'
                 }
-            });
+            };
+
+            imageCache.set(cacheKey, { data: fallbackData, timestamp: now });
+            return NextResponse.json(fallbackData);
         }
     } catch (error) {
         console.error('Error fetching from Unsplash:', error);

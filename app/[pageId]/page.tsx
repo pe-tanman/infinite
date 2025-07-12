@@ -19,6 +19,9 @@ import LoopDiagram from '@/components/custom/LoopDiagram';
 import ImageGallery from '@/components/custom/ImageGallery';
 import ImageChild from '@/components/custom/Image';
 import PageCard from '@/components/custom/PageCard';
+import TextSelectionOverlay from '@/components/custom/TextSelectionOverlay';
+import TextSelectionDemo from '@/components/custom/TextSelectionDemo';
+import BlockBasedEditor from '@/components/custom/BlockBasedEditor';
 import rehypePrettyCode from "rehype-pretty-code";
 import remarkGfm from "remark-gfm"; // Import remark-gfm
 
@@ -91,6 +94,36 @@ const overrideComponents = {
             className="border-gray-400 mb-2"
         />
     ),
+    thead: (props: React.HTMLAttributes<HTMLTableSectionElement>) => (
+        <thead
+            {...props}
+            className="bg-gray-50"
+        />
+    ),
+    tbody: (props: React.HTMLAttributes<HTMLTableSectionElement>) => (
+        <tbody
+            {...props}
+            className="divide-y divide-gray-200"
+        />
+    ),
+    th: (props: React.HTMLAttributes<HTMLTableCellElement>) => (
+        <th
+            {...props}
+            className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider border-b border-gray-300"
+        />
+    ),
+    td: (props: React.HTMLAttributes<HTMLTableCellElement>) => (
+        <td
+            {...props}
+            className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-b border-gray-200"
+        />
+    ),
+    tr: (props: React.HTMLAttributes<HTMLTableRowElement>) => (
+        <tr
+            {...props}
+            className="hover:bg-gray-50 transition-colors"
+        />
+    ),
 };
 
 interface PageData {
@@ -118,6 +151,17 @@ export default function DynamicPage({ params }: DynamicPageProps) {
     const [loading, setLoading] = React.useState<boolean>(true);
     const [error, setError] = React.useState<string | null>(null);
     const [pageId, setPageId] = React.useState<string | null>(null);
+    const [contentKey, setContentKey] = React.useState<number>(0); // Force re-render after edits
+    const [isSaving, setIsSaving] = React.useState(false);
+    const [isEditing, setIsEditing] = React.useState(true); // Always enable block editing
+    const [editedContent, setEditedContent] = React.useState('');
+    const [showPreview, setShowPreview] = React.useState(false);
+    const [previewMdx, setPreviewMdx] = React.useState<MDXRemoteSerializeResult | null>(null);
+    const [editMode, setEditMode] = React.useState<'full' | 'block'>('block');
+    
+    // Scroll position preservation for MDX re-rendering
+    const scrollPositionRef = React.useRef<number>(0);
+    const preserveScrollRef = React.useRef<boolean>(false);
 
     // Resolve params Promise
     React.useEffect(() => {
@@ -125,6 +169,55 @@ export default function DynamicPage({ params }: DynamicPageProps) {
             setPageId(resolvedParams.pageId);
         });
     }, [params]);
+
+    // Scroll position preservation effect for MDX re-rendering
+    React.useEffect(() => {
+        if (preserveScrollRef.current) {
+            console.log('🔄 Attempting to restore scroll position after MDX re-render');
+            console.log('  scrollPositionRef.current:', scrollPositionRef.current);
+            
+            // Also try to get from session storage as backup
+            const sessionScrollPosition = sessionStorage.getItem('pageScrollPosition');
+            const targetScrollPosition = scrollPositionRef.current || (sessionScrollPosition ? parseInt(sessionScrollPosition) : 0);
+            
+            console.log('  sessionStorage position:', sessionScrollPosition);
+            console.log('  Final target position:', targetScrollPosition);
+            
+            const restoreScroll = () => {
+                if (targetScrollPosition > 0) {
+                    console.log('📍 Restoring scroll to:', targetScrollPosition);
+                    window.scrollTo({
+                        top: targetScrollPosition,
+                        behavior: 'instant'
+                    });
+                    console.log('  Current scroll after restore:', window.scrollY);
+                } else {
+                    console.log('⚠️  Target scroll position is 0, skipping restore');
+                }
+                preserveScrollRef.current = false;
+                sessionStorage.removeItem('pageScrollPosition');
+            };
+
+            // Multiple restoration attempts to handle different timing scenarios
+            const timeouts = [0, 50, 100, 200, 500];
+            timeouts.forEach(delay => {
+                setTimeout(() => {
+                    if (preserveScrollRef.current) {
+                        console.log(`⏱️  Scroll restore attempt at ${delay}ms`);
+                        restoreScroll();
+                    }
+                }, delay);
+            });
+
+            // Also try with requestAnimationFrame for better timing
+            requestAnimationFrame(() => {
+                if (preserveScrollRef.current) {
+                    console.log('🎯 requestAnimationFrame scroll restore attempt');
+                    restoreScroll();
+                }
+            });
+        }
+    }, [contentKey, mdxSource]); // Re-run when content changes
 
     // Function to save page data to Firestore
     const savePageToFirestore = React.useCallback(async (pageId: string, data: PageData) => {
@@ -141,6 +234,260 @@ export default function DynamicPage({ params }: DynamicPageProps) {
             console.error('Error saving page to Firestore:', error);
         }
     }, [user]);
+
+    // Handle text editing
+    const handleTextEdit = React.useCallback(async (originalText: string, editedText: string) => {
+        if (!pageData || !pageId) return;
+
+        try {
+            // Update the content by replacing the original text with edited text
+            const updatedContent = pageData.content.replace(originalText, editedText);
+
+            const updatedPageData = {
+                ...pageData,
+                content: updatedContent,
+                lastUpdated: new Date().toISOString()
+            };
+
+            // Update Firestore
+            await updateDoc(doc(db, 'pages', pageId), {
+                content: updatedContent,
+                lastUpdated: serverTimestamp()
+            });
+
+            // Update local storage
+            localStorage.setItem(`page-${pageId}`, JSON.stringify(updatedPageData));
+
+            // Update local state
+            setPageData(updatedPageData);
+
+            // Re-serialize MDX content
+            const newMdxSource = await serialize(updatedContent, {
+                mdxOptions: {
+                    remarkPlugins: [remarkGfm],
+                    rehypePlugins: [
+                        [rehypePrettyCode, {
+                            theme: {
+                                dark: 'github-dark',
+                                light: 'github-light'
+                            },
+                            keepBackground: false,
+                            defaultLang: 'text',
+                            transformers: [],
+                        }]
+                    ]
+                }
+            });
+
+            setMdxSource(newMdxSource);
+            setContentKey(prev => prev + 1); // Force re-render
+        } catch (error) {
+            console.error('Error updating content:', error);
+        }
+    }, [pageData, pageId]);
+
+    // Handle document editing
+    const handleEditDocument = React.useCallback(() => {
+        if (pageData) {
+            setEditedContent(pageData.content);
+            setIsEditing(true);
+            setEditMode('full');
+        }
+    }, [pageData]);
+
+    // Handle block-based editing
+    const handleToggleBlockEdit = React.useCallback(() => {
+        if (pageData) {
+            setIsEditing(!isEditing);
+            setEditMode('block');
+        }
+    }, [pageData, isEditing]);
+
+    const handleSaveEdit = React.useCallback(async () => {
+        if (!pageData || !pageId || !editedContent) return;
+
+        try {
+            setIsSaving(true);
+
+            // Capture scroll position before MDX re-rendering with more robust detection
+            const currentScrollY = window.scrollY;
+            const currentPageOffset = window.pageYOffset;
+            const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+            
+            // Use the most reliable scroll position value
+            const capturedScrollPosition = Math.max(currentScrollY, currentPageOffset, scrollTop);
+            
+            scrollPositionRef.current = capturedScrollPosition;
+            preserveScrollRef.current = true;
+            sessionStorage.setItem('pageScrollPosition', capturedScrollPosition.toString());
+            
+            console.log('📍 Capturing scroll position before save edit:');
+            console.log('  window.scrollY:', currentScrollY);
+            console.log('  window.pageYOffset:', currentPageOffset);
+            console.log('  document.documentElement.scrollTop:', scrollTop);
+            console.log('  Final captured position:', capturedScrollPosition);
+
+            const updatedPageData = {
+                ...pageData,
+                content: editedContent,
+                lastUpdated: new Date().toISOString()
+            };
+
+            // Update Firestore
+            await updateDoc(doc(db, 'pages', pageId), {
+                content: editedContent,
+                lastUpdated: serverTimestamp()
+            });
+
+            // Update local storage
+            localStorage.setItem(`page-${pageId}`, JSON.stringify(updatedPageData));
+
+            // Update local state
+            setPageData(updatedPageData);
+
+            // Re-serialize MDX content
+            const newMdxSource = await serialize(editedContent, {
+                mdxOptions: {
+                    remarkPlugins: [remarkGfm],
+                    rehypePlugins: [
+                        [rehypePrettyCode, {
+                            theme: {
+                                dark: 'github-dark',
+                                light: 'github-light'
+                            },
+                            keepBackground: false,
+                            defaultLang: 'text',
+                            transformers: [],
+                        }]
+                    ]
+                }
+            });
+
+            setMdxSource(newMdxSource);
+            setContentKey(prev => prev + 1); // Force re-render (scroll will be preserved by useEffect)
+            setIsEditing(false);
+
+            console.log('Document edited and saved successfully');
+        } catch (error) {
+            console.error('Error saving edited document:', error);
+        } finally {
+            setIsSaving(false);
+        }
+    }, [pageData, pageId, editedContent]);
+
+    const handleCancelEdit = React.useCallback(() => {
+        setIsEditing(false);
+        setEditedContent('');
+        setShowPreview(false);
+        setPreviewMdx(null);
+        setEditMode('block');
+    }, []);
+
+    // Handle preview toggle
+    const handlePreviewToggle = React.useCallback(async () => {
+        if (!showPreview && editedContent) {
+            try {
+                const mdxSource = await serialize(editedContent, {
+                    mdxOptions: {
+                        remarkPlugins: [remarkGfm],
+                        rehypePlugins: [
+                            [rehypePrettyCode, {
+                                theme: {
+                                    dark: 'github-dark',
+                                    light: 'github-light'
+                                },
+                                keepBackground: false,
+                                defaultLang: 'text',
+                                transformers: [],
+                            }]
+                        ]
+                    }
+                });
+                setPreviewMdx(mdxSource);
+            } catch (error) {
+                console.error('Error generating preview:', error);
+            }
+        }
+        setShowPreview(!showPreview);
+    }, [showPreview, editedContent]);
+
+    // Handle explain request
+    const handleExplainRequest = React.useCallback((selectedText: string) => {
+        // This could be extended to show additional PageCards in the page
+        console.log('Explain request for:', selectedText);
+    }, []);
+
+    // Handle document updates (when PageCards are embedded directly in content)
+    const handleDocumentUpdate = React.useCallback(async (originalContent: string, newContent: string) => {
+        if (!pageData || !pageId) return;
+
+        try {
+            setIsSaving(true);
+
+            // Capture scroll position before MDX re-rendering with more robust detection
+            const currentScrollY = window.scrollY;
+            const currentPageOffset = window.pageYOffset;
+            const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+            
+            // Use the most reliable scroll position value
+            const capturedScrollPosition = Math.max(currentScrollY, currentPageOffset, scrollTop);
+            
+            scrollPositionRef.current = capturedScrollPosition;
+            preserveScrollRef.current = true;
+            sessionStorage.setItem('pageScrollPosition', capturedScrollPosition.toString());
+            
+            console.log('📍 Capturing scroll position before document update:');
+            console.log('  window.scrollY:', currentScrollY);
+            console.log('  window.pageYOffset:', currentPageOffset);
+            console.log('  document.documentElement.scrollTop:', scrollTop);
+            console.log('  Final captured position:', capturedScrollPosition);
+
+            const updatedPageData = {
+                ...pageData,
+                content: newContent,
+                lastUpdated: new Date().toISOString()
+            };
+
+            // Update Firestore
+            await updateDoc(doc(db, 'pages', pageId), {
+                content: newContent,
+                lastUpdated: serverTimestamp()
+            });
+
+            // Update local storage
+            localStorage.setItem(`page-${pageId}`, JSON.stringify(updatedPageData));
+
+            // Update local state
+            setPageData(updatedPageData);
+
+            // Re-serialize MDX content
+            const newMdxSource = await serialize(newContent, {
+                mdxOptions: {
+                    remarkPlugins: [remarkGfm],
+                    rehypePlugins: [
+                        [rehypePrettyCode, {
+                            theme: {
+                                dark: 'github-dark',
+                                light: 'github-light'
+                            },
+                            keepBackground: false,
+                            defaultLang: 'text',
+                            transformers: [],
+                        }]
+                    ]
+                }
+            });
+
+            setMdxSource(newMdxSource);
+            setContentKey(prev => prev + 1); // Force re-render (scroll will be preserved by useEffect)
+
+            console.log('Document updated successfully with embedded PageCard');
+        } catch (error) {
+            console.error('Error updating document:', error);
+        } finally {
+            setIsSaving(false);
+        }
+    }, [pageData, pageId]);
 
     React.useEffect(() => {
         if (!pageId) return;
@@ -249,6 +596,39 @@ export default function DynamicPage({ params }: DynamicPageProps) {
         loadPageData();
     }, [pageId, user, savePageToFirestore]);
 
+    // Handle keyboard shortcuts
+    React.useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            // Block edit toggle with Ctrl/Cmd + B
+            if ((event.metaKey || event.ctrlKey) && event.key === 'b') {
+                event.preventDefault();
+                handleToggleBlockEdit();
+            }
+            // Full edit mode with Ctrl/Cmd + E
+            if ((event.metaKey || event.ctrlKey) && event.key === 'e') {
+                event.preventDefault();
+                if (!isEditing) {
+                    handleEditDocument();
+                }
+            }
+            // Save with Ctrl/Cmd + S
+            if ((event.metaKey || event.ctrlKey) && event.key === 's') {
+                event.preventDefault();
+                if (isEditing && editMode === 'full') {
+                    handleSaveEdit();
+                }
+            }
+            // Cancel editing with Escape
+            if (event.key === 'Escape' && isEditing) {
+                event.preventDefault();
+                handleCancelEdit();
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [isEditing, editMode, handleToggleBlockEdit, handleEditDocument, handleSaveEdit, handleCancelEdit]);
+
     // 4. Escape unescaped quotes in JSX (example for line 320)
     // Replace: Generated from: "{pageData.prompt}"
     // With:
@@ -293,6 +673,16 @@ export default function DynamicPage({ params }: DynamicPageProps) {
 
     return (
         <div className="bg-white px-24 py-16 rounded-2xl max-w-6xl mx-auto my-15 shadow-sm" style={{ maxHeight: '95vh', overflowY: 'auto' }}>
+            {/* Text Selection Overlay */}
+            {!isEditing && (
+                <TextSelectionOverlay
+                    onTextEdit={handleTextEdit}
+                    onExplainRequest={handleExplainRequest}
+                    onDocumentUpdate={handleDocumentUpdate}
+                    pageContent={pageData?.content || ''}
+                />
+            )}
+
             {/* Page metadata */}
             <div className="mb-6 text-sm text-gray-500 border-b border-gray-200 pb-4">
                 <div className="flex items-center justify-between">
@@ -312,11 +702,42 @@ export default function DynamicPage({ params }: DynamicPageProps) {
                             </div>
                         )}
                         <div className="flex items-center space-x-2">
-                            <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                            <span className="text-green-600">Saved to cloud</span>
+                            {isSaving ? (
+                                <svg className="animate-spin w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            ) : (
+                                <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                            )}
+                            <span className={isSaving ? "text-blue-600" : "text-green-600"}>
+                                {isSaving ? 'Saving...' : 'Saved to cloud'}
+                            </span>
                         </div>
+                        <button
+                            onClick={handleEditDocument}
+                            disabled={isEditing}
+                            className="flex items-center space-x-1 px-3 py-1 text-sm bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-md transition-colors disabled:opacity-50"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            <span>Edit Document</span>
+                        </button>
+                        <button
+                            onClick={handleToggleBlockEdit}
+                            className={`flex items-center space-x-1 px-3 py-1 text-sm rounded-md transition-colors ${isEditing && editMode === 'block'
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-purple-50 hover:bg-purple-100 text-purple-700'
+                                }`}
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14-7H5m14 14H5" />
+                            </svg>
+                            <span>{isEditing && editMode === 'block' ? 'Exit Block Edit' : 'Block Edit'}</span>
+                        </button>
                     </div>
                 </div>
                 {pageData.prompt && (
@@ -326,23 +747,127 @@ export default function DynamicPage({ params }: DynamicPageProps) {
                 )}
             </div>
 
-            <MDXRemote
-                {...mdxSource}
-                components={{
-                    ...overrideComponents,
-                    Callout,
-                    CoverImage,
-                    Toggle,
-                    ArrowDiagram,
-                    DiagramCard,
-                    PyramidDiagram,
-                    MatrixDiagram,
-                    LoopDiagram,
-                    ImageGallery,
-                    ImageChild,
-                    PageCard
-                }}
-            />
+
+            {/* Edit Mode */}
+            {isEditing && editMode === 'full' ? (
+                <div className="mb-6 border border-gray-300 rounded-lg overflow-hidden">
+                    <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            <span className="font-medium text-gray-900">Edit Document</span>
+                            <span className="text-sm text-gray-500">• Markdown supported</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <button
+                                onClick={handlePreviewToggle}
+                                className={`px-3 py-1 text-sm rounded transition-colors ${showPreview
+                                        ? 'bg-gray-200 text-gray-800'
+                                        : 'text-gray-600 hover:text-gray-800 border border-gray-300 hover:bg-gray-50'
+                                    }`}
+                            >
+                                {showPreview ? 'Edit' : 'Preview'}
+                            </button>
+                            <button
+                                onClick={handleCancelEdit}
+                                className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSaveEdit}
+                                disabled={isSaving}
+                                className="px-3 py-1 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+                            >
+                                {isSaving ? (
+                                    <>
+                                        <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        <span>Saving...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span>Save</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                    {showPreview ? (
+                        <div className="p-4 prose max-w-none" style={{ minHeight: '60vh' }}>
+                            {previewMdx && (
+                                <MDXRemote
+                                    {...previewMdx}
+                                    components={{
+                                        ...overrideComponents,
+                                        Callout,
+                                        CoverImage,
+                                        Toggle,
+                                        ArrowDiagram,
+                                        DiagramCard,
+                                        PyramidDiagram,
+                                        MatrixDiagram,
+                                        LoopDiagram,
+                                        ImageGallery,
+                                        ImageChild,
+                                        PageCard
+                                    }}
+                                />
+                            )}
+                        </div>
+                    ) : (
+                        <textarea
+                            value={editedContent}
+                            onChange={(e) => setEditedContent(e.target.value)}
+                            className="w-full p-4 text-sm font-mono border-none resize-none focus:outline-none focus:ring-0"
+                            rows={30}
+                            placeholder="Enter your markdown content here..."
+                            style={{ minHeight: '60vh' }}
+                        />
+                    )}
+                </div>
+            ) : (
+                <div key={contentKey}>
+                    {/* Block-based editor for editing mode */}
+                    {pageData && (
+                        <BlockBasedEditor
+                            content={pageData.content}
+                            onContentChange={(newContent) => handleDocumentUpdate(pageData.content, newContent)}
+                            isEditing={isEditing && editMode === 'block'}
+                            components={{
+                                ...overrideComponents,
+                                Callout,
+                                CoverImage,
+                                Toggle,
+                                ArrowDiagram,
+                                DiagramCard,
+                                PyramidDiagram,
+                                MatrixDiagram,
+                                LoopDiagram,
+                                ImageGallery,
+                                ImageChild,
+                                PageCard
+                            }}
+                        />
+                    )}
+                </div>
+            )}
+
+            {/* Text Selection Overlay (only when not in block editing mode) */}
+            {!isEditing && pageData && (
+                <TextSelectionOverlay
+                    pageContent={pageData.content}
+                    onTextEdit={handleTextEdit}
+                    onExplainRequest={handleExplainRequest}
+                    onDocumentUpdate={handleDocumentUpdate}
+                />
+            )}
         </div>
     );
 }

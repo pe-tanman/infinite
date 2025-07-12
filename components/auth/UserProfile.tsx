@@ -3,6 +3,7 @@ import { useAuth } from './AuthProvider'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import Image from 'next/image'
+import { MdOutlineSettings } from "react-icons/md";
 
 interface UserProfileProps {
     isCollapsed?: boolean
@@ -109,6 +110,17 @@ const UserProfile: React.FC<UserProfileProps> = ({ isCollapsed = false, onSignIn
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
                             <span>Profile</span>
+                        </div>
+                    </Link>
+
+                    <Link
+                        href="/settings"
+                        onClick={() => setIsOpen(false)}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors block"
+                    >
+                        <div className="flex items-center space-x-2">
+                            <MdOutlineSettings className="w-4 h-4" />
+                            <span>Settings</span>
                         </div>
                     </Link>
 

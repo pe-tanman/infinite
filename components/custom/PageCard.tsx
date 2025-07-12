@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthProvider'
 import { db } from '@/lib/firebase/clientApp'
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { generateContentWithOpenAI } from '@/lib/openai/contentGenerator'
+import { getCachedImage, setCachedImage } from '@/lib/utils/imageCache'
 
 interface PageCardProps {
     title: string
@@ -31,23 +32,37 @@ const PageCard: React.FC<PageCardProps> = ({
     const [coverImageLink, setCoverImageLink] = useState<string | null>(null)
     const [imageLoading, setImageLoading] = useState(true)
 
-    // Function to fetch cover image from Unsplash API
+    // Function to fetch cover image from Unsplash API with client-side caching
     const fetchCoverImage = async () => {
         try {
             setImageLoading(true)
             // Create search query from title and coverImageKeywords
             const titleKeywords = title.toLowerCase().split(' ').filter(word => word.length > 2).slice(0, 3)
-            const keywords = coverImageKeywords && coverImageKeywords.length > 0 
-                ? coverImageKeywords.slice(0, 3) 
+            const keywords = coverImageKeywords && coverImageKeywords.length > 0
+                ? coverImageKeywords.slice(0, 3)
                 : titleKeywords
             const searchQuery = keywords.join(' ')
 
+            // Check cache first
+            const cachedImage = getCachedImage(searchQuery)
+            if (cachedImage) {
+                console.log(`Using cached image for query: ${searchQuery}`)
+                setCoverImage(cachedImage.data.urls.regular)
+                setCoverImageLink(cachedImage.data.links?.html || `https://unsplash.com/photos/${cachedImage.data.id}`)
+                setImageLoading(false)
+                return
+            }
+
+            console.log(`Fetching new image for query: ${searchQuery}`)
             const response = await fetch(`/api/unsplash?query=${encodeURIComponent(searchQuery)}`)
-            
+
             if (response.ok) {
                 const imageData = await response.json()
                 setCoverImage(imageData.urls.regular)
                 setCoverImageLink(imageData.links?.html || `https://unsplash.com/photos/${imageData.id}`)
+
+                // Cache the result
+                setCachedImage(searchQuery, imageData)
             }
         } catch (error) {
             console.error('Error fetching cover image:', error)
@@ -278,7 +293,7 @@ async function generatePageContent(title: string, excerpt: string, prompt: strin
     const titleKeywords = title.toLowerCase().split(' ').filter(word => word.length > 2);
     const excerptKeywords = excerpt.toLowerCase().split(' ').filter(word => word.length > 3).slice(0, 3);
     const combinedKeywords = [...titleKeywords, ...excerptKeywords].slice(0, 5); // Limit to 5 keywords
-    
+
     const content = await generateContentWithOpenAI({
         title,
         prompt,
