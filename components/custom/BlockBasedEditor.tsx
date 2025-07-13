@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { MDXRemote } from 'next-mdx-remote';
 import { serialize } from 'next-mdx-remote/serialize';
 import { MDXRemoteSerializeResult } from 'next-mdx-remote';
@@ -12,7 +12,7 @@ interface Block {
     level?: number; // for headings
     language?: string; // for code blocks
     componentName?: string; // for custom components
-    props?: Record<string, any>; // for custom components
+    props?: Record<string, unknown>; // for custom components
     mdx?: MDXRemoteSerializeResult;
 }
 
@@ -20,7 +20,8 @@ interface BlockBasedEditorProps {
     content: string;
     onContentChange: (newContent: string) => void;
     isEditing?: boolean;
-    components?: Record<string, any>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    components?: Record<string, React.ComponentType<Record<string, unknown>> | React.ComponentType<any>>;
 }
 
 export default function BlockBasedEditor({
@@ -73,7 +74,8 @@ export default function BlockBasedEditor({
         }
 
         parseContentIntoBlocks(content);
-    }, [content]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [content]); // parseContentIntoBlocks is stable, so excluding from dependencies
 
     // Focus textarea when editing starts
     useEffect(() => {
@@ -85,16 +87,27 @@ export default function BlockBasedEditor({
     // Helper functions for block extraction
     const isLargeComponent = (line: string): boolean => {
         const trimmed = line.trim();
-        // Check for large custom components
+        // Check for large custom components (components that have content between opening/closing tags)
         const largeComponents = [
-            'ImageGallery', 'DiagramCard', 'ArrowDiagram', 'PyramidDiagram',
-            'MatrixDiagram', 'LoopDiagram', 'PageCard', 'CoverImage', 'Toggle'
+            'ImageGallery', 'ArrowDiagram', 'PyramidDiagram',
+            'MatrixDiagram', 'LoopDiagram', 'Toggle'
         ];
         return largeComponents.some(comp => trimmed.startsWith(`<${comp}`));
     };
 
+    const isSelfClosingComponent = (line: string): boolean => {
+        const trimmed = line.trim();
+        // Check for self-closing components that can span multiple lines
+        const selfClosingComponents = [
+            'PageCard', 'CoverImage', 'DiagramCard', 'Callout', 'ImageChild'
+        ];
+        
+        return selfClosingComponents.some(comp => trimmed.startsWith(`<${comp}`));
+    };
+
     const isSingleLineComponent = (line: string): boolean => {
         const trimmed = line.trim();
+        // Only return true if it's truly a single line (ends with /> or has complete closing tag)
         return trimmed.startsWith('<') && (trimmed.endsWith('/>') || trimmed.includes('</'));
     };
 
@@ -129,6 +142,45 @@ export default function BlockBasedEditor({
 
             if (line.trim().includes(closingTag)) {
                 endIndex = i;
+                break;
+            }
+        }
+
+        return { content, endIndex };
+    };
+
+    const extractSelfClosingComponentBlock = (lines: string[], startIndex: number): { content: string; endIndex: number } | null => {
+        const startLine = lines[startIndex];
+        const trimmed = startLine.trim();
+
+        // Find the component name
+        const match = trimmed.match(/^<(\w+)/);
+        if (!match) return null;
+
+        const componentName = match[1];
+        let content = startLine;
+        let endIndex = startIndex;
+
+        // If it's already self-closing on the first line, return it
+        if (trimmed.endsWith('/>')) {
+            return { content, endIndex };
+        }
+
+        // Look for the closing /> across multiple lines
+        for (let i = startIndex + 1; i < lines.length; i++) {
+            const line = lines[i];
+            content += '\n' + line;
+
+            if (line.trim().endsWith('/>')) {
+                endIndex = i;
+                break;
+            }
+
+            // Safety check: if we find another component, stop
+            if (line.trim().startsWith('<') && !line.trim().includes(componentName)) {
+                // This might be a new component, so don't include it
+                content = content.replace('\n' + line, '');
+                endIndex = i - 1;
                 break;
             }
         }
@@ -243,7 +295,7 @@ export default function BlockBasedEditor({
         return null;
     };
 
-    const parseContentIntoBlocks = async (markdownContent: string) => {
+    const parseContentIntoBlocks = useCallback(async (markdownContent: string) => {
         setIsProcessing(true);
         
         try {
@@ -273,7 +325,18 @@ export default function BlockBasedEditor({
                     }
                 }
 
-                // Check for self-closing or single-line components
+                // Check for self-closing components (like PageCard) that can span multiple lines
+                if (isSelfClosingComponent(trimmedLine)) {
+                    const componentBlock = extractSelfClosingComponentBlock(lines, i);
+                    if (componentBlock) {
+                        const block = await createBlock(blockId++, 'component', componentBlock.content);
+                        if (block) newBlocks.push(block);
+                        i = componentBlock.endIndex + 1;
+                        continue;
+                    }
+                }
+
+                // Check for single-line components that are already complete
                 if (isSingleLineComponent(trimmedLine)) {
                     const block = await createBlock(blockId++, 'component', line);
                     if (block) newBlocks.push(block);
@@ -355,7 +418,7 @@ export default function BlockBasedEditor({
         } finally {
             setIsProcessing(false);
         }
-    };
+    }, [extractListBlock]); // parseContentIntoBlocks depends on extractListBlock
 
     const createBlock = async (id: number, type: Block['type'], content: string): Promise<Block | null> => {
         const blockId = `block-${id}`;
@@ -578,44 +641,6 @@ export default function BlockBasedEditor({
         }
     };
 
-    // Enhanced scroll preservation
-    const preserveScrollPosition = (callback: () => void) => {
-        // Save current scroll position
-        const currentScrollY = window.scrollY;
-        
-        // If we're editing a block, try to preserve position relative to that block
-        let editingBlockElement: HTMLElement | null = null;
-        if (editingBlockId) {
-            editingBlockElement = document.querySelector(`[data-block-id="${editingBlockId}"]`);
-        }
-        
-        // Execute the callback
-        callback();
-        
-        // Restore scroll position after DOM updates
-        requestAnimationFrame(() => {
-            setTimeout(() => {
-                if (editingBlockElement) {
-                    // Try to scroll to the edited block if it still exists
-                    const updatedBlockElement = document.querySelector(`[data-block-id="${editingBlockId}"]`);
-                    if (updatedBlockElement) {
-                        updatedBlockElement.scrollIntoView({ 
-                            behavior: 'smooth', 
-                            block: 'center' 
-                        });
-                        return;
-                    }
-                }
-                
-                // Fallback to original scroll position
-                window.scrollTo({
-                    top: currentScrollY,
-                    behavior: 'smooth'
-                });
-            }, 50);
-        });
-    };
-
     // Global keyboard shortcuts
     useEffect(() => {
         const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -669,7 +694,7 @@ export default function BlockBasedEditor({
         <div ref={containerRef} className="block-based-editor">
             {/* Bulk Actions Toolbar - Show when multiple blocks are selected */}
             {selectedBlockIds.length > 1 && (
-                <div className="sticky top-0 z-20 bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 shadow-sm">
+                <div className="sticky top-0 z-20 bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 shadow-sm block-actions">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
                             <div className="flex items-center space-x-1">
@@ -749,7 +774,7 @@ export default function BlockBasedEditor({
 
                     {/* Block Actions */}
                     {isEditing && selectedBlockIds.includes(block.id) && editingBlockId !== block.id && (
-                        <div className="absolute right-0 top-0 flex items-center space-x-1 bg-white border border-gray-300 rounded-md shadow-sm p-1 z-10">
+                        <div className="absolute right-0 top-0 flex items-center space-x-1 bg-white border border-gray-300 rounded-md shadow-sm p-1 z-10 block-actions">
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -791,7 +816,7 @@ export default function BlockBasedEditor({
 
                     {/* Block Content */}
                     {editingBlockId === block.id ? (
-                        <div className="bg-white border border-gray-300 rounded-md p-2">
+                        <div className="bg-white border border-gray-300 rounded-md p-2" data-editing-block-id={block.id}>
                             <textarea
                                 ref={editRef}
                                 value={editContent}
@@ -800,6 +825,7 @@ export default function BlockBasedEditor({
                                 className="w-full p-2 border border-gray-200 rounded font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 rows={Math.max(3, editContent.split('\n').length + 1)}
                                 placeholder="Enter block content..."
+                                data-editing-block-id={block.id}
                             />
                             <div className="flex justify-end space-x-2 mt-2">
                                 <button
@@ -825,18 +851,18 @@ export default function BlockBasedEditor({
                                     components={{
                                         ...components,
                                         // Enhanced table components with proper styling
-                                        table: (props: any) => (
+                                        table: (props: React.TableHTMLAttributes<HTMLTableElement>) => (
                                             <div className="overflow-x-auto my-4 border border-gray-300 rounded-lg">
                                                 <table {...props} className="min-w-full border-collapse bg-white" />
                                             </div>
                                         ),
-                                        thead: (props: any) => <thead {...props} className="bg-gray-50" />,
-                                        tbody: (props: any) => <tbody {...props} className="divide-y divide-gray-200" />,
-                                        th: (props: any) => <th {...props} className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider border-b border-gray-300" />,
-                                        td: (props: any) => <td {...props} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-b border-gray-200" />,
-                                        tr: (props: any) => <tr {...props} className="hover:bg-gray-50 transition-colors" />,
+                                        thead: (props: React.HTMLAttributes<HTMLTableSectionElement>) => <thead {...props} className="bg-gray-50" />,
+                                        tbody: (props: React.HTMLAttributes<HTMLTableSectionElement>) => <tbody {...props} className="divide-y divide-gray-200" />,
+                                        th: (props: React.ThHTMLAttributes<HTMLTableHeaderCellElement>) => <th {...props} className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider border-b border-gray-300" />,
+                                        td: (props: React.TdHTMLAttributes<HTMLTableDataCellElement>) => <td {...props} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-b border-gray-200" />,
+                                        tr: (props: React.HTMLAttributes<HTMLTableRowElement>) => <tr {...props} className="hover:bg-gray-50 transition-colors" />,
                                         // Enhanced PageCard wrapper to ensure proper display
-                                        PageCard: (props: any) => {
+                                        PageCard: (props: Record<string, unknown>) => {
                                             console.log('PageCard rendering with props:', props);
                                             return (
                                                 <div className="my-4 not-prose">
@@ -865,21 +891,6 @@ export default function BlockBasedEditor({
                     >
                         Add First Block
                     </button>
-                </div>
-            )}
-
-            {/* Help text for selection features */}
-            {isEditing && blocks.length > 0 && (
-                <div className="text-xs text-gray-500 mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                    <div className="space-y-1">
-                        <div><strong>Tips:</strong></div>
-                        <div>• <strong>Double-click</strong> any block to start editing</div>
-                        <div>• <strong>Ctrl/Cmd + Click</strong> to select multiple blocks</div>
-                        <div>• <strong>Ctrl/Cmd + A</strong> to select all blocks</div>
-                        <div>• <strong>Delete key</strong> to remove selected blocks</div>
-                        <div>• <strong>Escape</strong> to clear selection</div>
-                        <div>• Use bulk actions toolbar when multiple blocks are selected</div>
-                    </div>
                 </div>
             )}
         </div>

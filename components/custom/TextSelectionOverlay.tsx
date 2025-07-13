@@ -41,6 +41,30 @@ export const TextSelectionOverlay: React.FC<TextSelectionOverlayProps> = ({
                 const selectedText = windowSelection.toString().trim()
 
                 if (selectedText.length > 0) {
+                    // Check if the selection is within a block editor element that's currently being edited
+                    const commonAncestor = range.commonAncestorContainer
+                    const parentElement = commonAncestor.nodeType === Node.TEXT_NODE 
+                        ? commonAncestor.parentElement 
+                        : commonAncestor as Element
+
+                    // Don't show overlay if selection is within:
+                    // 1. A textarea (block editing)
+                    // 2. An input field
+                    // 3. A contenteditable element
+                    // 4. An element with data-editing-block-id (currently being edited in block editor)
+                    if (parentElement && (
+                        parentElement.closest('textarea') ||
+                        parentElement.closest('input') ||
+                        parentElement.closest('[contenteditable="true"]') ||
+                        parentElement.closest('[data-editing-block-id]') ||
+                        parentElement.closest('button') ||
+                        parentElement.closest('.block-actions')
+                    )) {
+                        setOverlayVisible(false)
+                        setSelection(null)
+                        return
+                    }
+
                     const rect = range.getBoundingClientRect()
                     setSelection({
                         text: selectedText,
@@ -65,9 +89,15 @@ export const TextSelectionOverlay: React.FC<TextSelectionOverlayProps> = ({
         // Handle clicks outside overlay
         const handleClickOutside = (event: MouseEvent) => {
             if (overlayRef.current && !overlayRef.current.contains(event.target as Node)) {
-                // Don't close if user is clicking on input elements within the overlay
+                // Don't close if user is clicking on input elements, textareas, or block editing controls
                 const target = event.target as HTMLElement
-                if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+                if (target.tagName === 'INPUT' || 
+                    target.tagName === 'TEXTAREA' || 
+                    target.closest('[data-editing-block-id]') ||
+                    target.closest('.block-actions') ||
+                    target.closest('button[title*="Edit"]') ||
+                    target.closest('button[title*="Add"]') ||
+                    target.closest('button[title*="Delete"]')) {
                     return
                 }
                 setOverlayVisible(false)
@@ -158,36 +188,36 @@ export const TextSelectionOverlay: React.FC<TextSelectionOverlayProps> = ({
             }
 
             const pageCardData = await response.json()
+            
+            // Store the content for display in the overlay
             setExplainContent(pageCardData.content)
 
-            // Create MDX content for the PageCard that will be inserted into the document
-            const pageCardMDX = `
-<PageCard
-    title="${pageCardData.title.replace(/"/g, '\\"')}"
-    excerpt="${pageCardData.excerpt.replace(/"/g, '\\"')}"
-    prompt="${pageCardData.content.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"
-    coverImageKeywords={${JSON.stringify(pageCardData.keywords)}}
-/>
-`
+            // Create clean MDX content for the PageCard that will be inserted into the document
+            // Escape quotes and newlines properly for MDX
+            const cleanTitle = pageCardData.title.replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+            const cleanExcerpt = pageCardData.excerpt.replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+            const cleanPrompt = pageCardData.content.replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/\n/g, ' ')
+            
+            const pageCardMDX = `<PageCard title="${cleanTitle}" excerpt="${cleanExcerpt}" prompt="${cleanPrompt}" coverImageKeywords={${JSON.stringify(pageCardData.keywords)}} />`
 
             // Capture scroll position before making content changes
             const currentScrollY = window.scrollY;
             const currentPageOffset = window.pageYOffset;
             const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
             const capturedScrollPosition = Math.max(currentScrollY, currentPageOffset, scrollTop);
-            
+
             console.log('📍 TextSelectionOverlay: Capturing scroll position before PageCard insertion:');
             console.log('  window.scrollY:', currentScrollY);
             console.log('  window.pageYOffset:', currentPageOffset);
             console.log('  document.documentElement.scrollTop:', scrollTop);
             console.log('  Final captured position:', capturedScrollPosition);
-            
+
             // Store in session storage for parent component to use
             sessionStorage.setItem('pageScrollPosition', capturedScrollPosition.toString());
 
             // Find the position of the selected text in the document
             const selectedTextIndex = pageContent.indexOf(selection.text)
-            
+
             if (selectedTextIndex !== -1) {
                 // Insert PageCard right after the selected text
                 let insertionPoint = selectedTextIndex + selection.text.length
@@ -195,7 +225,7 @@ export const TextSelectionOverlay: React.FC<TextSelectionOverlayProps> = ({
                 // Look for the end of the current paragraph or block
                 const contentAfterSelection = pageContent.slice(insertionPoint)
                 const nextParagraphEnd = contentAfterSelection.search(/\n\s*\n/)
-                
+
                 if (nextParagraphEnd !== -1) {
                     // Insert after the current paragraph
                     insertionPoint += nextParagraphEnd
@@ -254,15 +284,43 @@ export const TextSelectionOverlay: React.FC<TextSelectionOverlayProps> = ({
             setExplainContent(null)
         } catch (error) {
             console.error('Error explaining text:', error)
-            setExplainContent('Error generating explanation')
+            
+            // Create a fallback PageCard when API fails
+            const fallbackTitle = `Understanding: ${selection.text.length > 30 ? selection.text.substring(0, 30) + '...' : selection.text}`
+            const fallbackExcerpt = selection.text.length > 150 ? selection.text.substring(0, 150) + '...' : selection.text
+            const fallbackPrompt = `Explain the concept of "${selection.text}" in detail. Include definitions, examples, and practical applications.`
+            const fallbackKeywords = ['concept', 'explanation', 'learning']
+            
+            // Create fallback PageCard MDX
+            const fallbackPageCardMDX = `<PageCard title="${fallbackTitle}" excerpt="${fallbackExcerpt}" prompt="${fallbackPrompt}" coverImageKeywords={${JSON.stringify(fallbackKeywords)}} />`
+            
+            // Insert the fallback PageCard
+            const selectedTextIndex = pageContent.indexOf(selection.text)
+            if (selectedTextIndex !== -1) {
+                let insertionPoint = selectedTextIndex + selection.text.length
+                const contentAfterSelection = pageContent.slice(insertionPoint)
+                const nextParagraphEnd = contentAfterSelection.search(/\n\s*\n/)
+                
+                if (nextParagraphEnd !== -1) {
+                    insertionPoint += nextParagraphEnd
+                }
+                
+                const newContent = pageContent.slice(0, insertionPoint) + '\n\n' + fallbackPageCardMDX + pageContent.slice(insertionPoint)
+                onDocumentUpdate(pageContent, newContent)
+            } else {
+                const newContent = pageContent + '\n\n' + fallbackPageCardMDX
+                onDocumentUpdate(pageContent, newContent)
+            }
+            
+            setExplainContent(`Created a learning card for "${selection.text}". Note: AI generation failed, using fallback content.`)
 
-            // Show error message to user
+            // Close overlay after a brief delay
             setTimeout(() => {
                 setOverlayVisible(false)
                 setSelection(null)
                 setMode('menu')
                 setExplainContent(null)
-            }, 3000)
+            }, 2000)
         } finally {
             setIsProcessing(false)
         }
@@ -367,7 +425,7 @@ export const TextSelectionOverlay: React.FC<TextSelectionOverlayProps> = ({
 
                         <div className="text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 p-3 rounded-md max-h-24 overflow-y-auto border-l-4 border-gray-300 dark:border-gray-600">
                             <div className="font-medium mb-1">Selected text:</div>
-                            "{selection.text}"
+                            &quot;{selection.text}&quot;
                         </div>
 
                         <div className="space-y-2">

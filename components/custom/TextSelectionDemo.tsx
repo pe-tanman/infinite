@@ -16,7 +16,7 @@ const TextSelectionDemo: React.FC = () => {
                         Interactive Text Editing
                     </h3>
                     <p className="text-sm text-blue-800 dark:text-blue-200 mb-2">
-                        Select any text to edit it with AI or embed learning cards directly into the document! You can also edit the entire document using the "Edit Document" button.
+                        Select any text to edit it with AI or embed learning cards directly into the document! You can also edit the entire document using the &quot;Edit Document&quot; button.
                     </p>
                     <div className="flex space-x-2 text-xs text-blue-600 dark:text-blue-300">
                         <div className="flex items-center space-x-1">

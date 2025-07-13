@@ -20,10 +20,10 @@ import ImageGallery from '@/components/custom/ImageGallery';
 import ImageChild from '@/components/custom/Image';
 import PageCard from '@/components/custom/PageCard';
 import TextSelectionOverlay from '@/components/custom/TextSelectionOverlay';
-import TextSelectionDemo from '@/components/custom/TextSelectionDemo';
 import BlockBasedEditor from '@/components/custom/BlockBasedEditor';
 import rehypePrettyCode from "rehype-pretty-code";
 import remarkGfm from "remark-gfm"; // Import remark-gfm
+import { MdOutlineEdit } from "react-icons/md";
 
 const overrideComponents = {
     h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
@@ -158,7 +158,7 @@ export default function DynamicPage({ params }: DynamicPageProps) {
     const [showPreview, setShowPreview] = React.useState(false);
     const [previewMdx, setPreviewMdx] = React.useState<MDXRemoteSerializeResult | null>(null);
     const [editMode, setEditMode] = React.useState<'full' | 'block'>('block');
-    
+
     // Scroll position preservation for MDX re-rendering
     const scrollPositionRef = React.useRef<number>(0);
     const preserveScrollRef = React.useRef<boolean>(false);
@@ -171,53 +171,6 @@ export default function DynamicPage({ params }: DynamicPageProps) {
     }, [params]);
 
     // Scroll position preservation effect for MDX re-rendering
-    React.useEffect(() => {
-        if (preserveScrollRef.current) {
-            console.log('🔄 Attempting to restore scroll position after MDX re-render');
-            console.log('  scrollPositionRef.current:', scrollPositionRef.current);
-            
-            // Also try to get from session storage as backup
-            const sessionScrollPosition = sessionStorage.getItem('pageScrollPosition');
-            const targetScrollPosition = scrollPositionRef.current || (sessionScrollPosition ? parseInt(sessionScrollPosition) : 0);
-            
-            console.log('  sessionStorage position:', sessionScrollPosition);
-            console.log('  Final target position:', targetScrollPosition);
-            
-            const restoreScroll = () => {
-                if (targetScrollPosition > 0) {
-                    console.log('📍 Restoring scroll to:', targetScrollPosition);
-                    window.scrollTo({
-                        top: targetScrollPosition,
-                        behavior: 'instant'
-                    });
-                    console.log('  Current scroll after restore:', window.scrollY);
-                } else {
-                    console.log('⚠️  Target scroll position is 0, skipping restore');
-                }
-                preserveScrollRef.current = false;
-                sessionStorage.removeItem('pageScrollPosition');
-            };
-
-            // Multiple restoration attempts to handle different timing scenarios
-            const timeouts = [0, 50, 100, 200, 500];
-            timeouts.forEach(delay => {
-                setTimeout(() => {
-                    if (preserveScrollRef.current) {
-                        console.log(`⏱️  Scroll restore attempt at ${delay}ms`);
-                        restoreScroll();
-                    }
-                }, delay);
-            });
-
-            // Also try with requestAnimationFrame for better timing
-            requestAnimationFrame(() => {
-                if (preserveScrollRef.current) {
-                    console.log('🎯 requestAnimationFrame scroll restore attempt');
-                    restoreScroll();
-                }
-            });
-        }
-    }, [contentKey, mdxSource]); // Re-run when content changes
 
     // Function to save page data to Firestore
     const savePageToFirestore = React.useCallback(async (pageId: string, data: PageData) => {
@@ -313,14 +266,14 @@ export default function DynamicPage({ params }: DynamicPageProps) {
             const currentScrollY = window.scrollY;
             const currentPageOffset = window.pageYOffset;
             const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            
+
             // Use the most reliable scroll position value
             const capturedScrollPosition = Math.max(currentScrollY, currentPageOffset, scrollTop);
-            
+
             scrollPositionRef.current = capturedScrollPosition;
             preserveScrollRef.current = true;
             sessionStorage.setItem('pageScrollPosition', capturedScrollPosition.toString());
-            
+
             console.log('📍 Capturing scroll position before save edit:');
             console.log('  window.scrollY:', currentScrollY);
             console.log('  window.pageYOffset:', currentPageOffset);
@@ -428,14 +381,14 @@ export default function DynamicPage({ params }: DynamicPageProps) {
             const currentScrollY = window.scrollY;
             const currentPageOffset = window.pageYOffset;
             const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            
+
             // Use the most reliable scroll position value
             const capturedScrollPosition = Math.max(currentScrollY, currentPageOffset, scrollTop);
-            
+
             scrollPositionRef.current = capturedScrollPosition;
             preserveScrollRef.current = true;
             sessionStorage.setItem('pageScrollPosition', capturedScrollPosition.toString());
-            
+
             console.log('📍 Capturing scroll position before document update:');
             console.log('  window.scrollY:', currentScrollY);
             console.log('  window.pageYOffset:', currentPageOffset);
@@ -673,8 +626,8 @@ export default function DynamicPage({ params }: DynamicPageProps) {
 
     return (
         <div className="bg-white px-24 py-16 rounded-2xl max-w-6xl mx-auto my-15 shadow-sm" style={{ maxHeight: '95vh', overflowY: 'auto' }}>
-            {/* Text Selection Overlay */}
-            {!isEditing && (
+            {/* Text Selection Overlay - Available in both edit and view modes */}
+            {pageData && (
                 <TextSelectionOverlay
                     onTextEdit={handleTextEdit}
                     onExplainRequest={handleExplainRequest}
@@ -717,25 +670,13 @@ export default function DynamicPage({ params }: DynamicPageProps) {
                             </span>
                         </div>
                         <button
-                            onClick={handleEditDocument}
-                            disabled={isEditing}
-                            className="flex items-center space-x-1 px-3 py-1 text-sm bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-md transition-colors disabled:opacity-50"
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                            <span>Edit Document</span>
-                        </button>
-                        <button
                             onClick={handleToggleBlockEdit}
                             className={`flex items-center space-x-1 px-3 py-1 text-sm rounded-md transition-colors ${isEditing && editMode === 'block'
-                                    ? 'bg-green-100 text-green-700'
-                                    : 'bg-purple-50 hover:bg-purple-100 text-purple-700'
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-purple-50 hover:bg-purple-100 text-purple-700'
                                 }`}
                         >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14-7H5m14 14H5" />
-                            </svg>
+                            <MdOutlineEdit className="w-4 h-4" />
                             <span>{isEditing && editMode === 'block' ? 'Exit Block Edit' : 'Block Edit'}</span>
                         </button>
                     </div>
@@ -763,8 +704,8 @@ export default function DynamicPage({ params }: DynamicPageProps) {
                             <button
                                 onClick={handlePreviewToggle}
                                 className={`px-3 py-1 text-sm rounded transition-colors ${showPreview
-                                        ? 'bg-gray-200 text-gray-800'
-                                        : 'text-gray-600 hover:text-gray-800 border border-gray-300 hover:bg-gray-50'
+                                    ? 'bg-gray-200 text-gray-800'
+                                    : 'text-gray-600 hover:text-gray-800 border border-gray-300 hover:bg-gray-50'
                                     }`}
                             >
                                 {showPreview ? 'Edit' : 'Preview'}
@@ -857,16 +798,6 @@ export default function DynamicPage({ params }: DynamicPageProps) {
                         />
                     )}
                 </div>
-            )}
-
-            {/* Text Selection Overlay (only when not in block editing mode) */}
-            {!isEditing && pageData && (
-                <TextSelectionOverlay
-                    pageContent={pageData.content}
-                    onTextEdit={handleTextEdit}
-                    onExplainRequest={handleExplainRequest}
-                    onDocumentUpdate={handleDocumentUpdate}
-                />
             )}
         </div>
     );

@@ -112,7 +112,7 @@ const ImageCacheManager: React.FC = () => {
                         <li>• Images are cached for 24 hours</li>
                         <li>• Maximum of 50 images are cached</li>
                         <li>• Old entries are automatically cleaned up</li>
-                        <li>• Cache is stored in browser's localStorage</li>
+                        <li>• Cache is stored in browser&apos;s localStorage</li>
                     </ul>
                 </div>
             </div>

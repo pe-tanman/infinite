@@ -1,7 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+interface UnsplashImageData {
+    id: string;
+    urls: {
+        regular: string;
+        small: string;
+        thumb: string;
+    };
+    alt_description: string | null;
+    description: string | null;
+    user: {
+        name: string;
+    };
+}
+
+interface CachedData {
+    data: UnsplashImageData;
+    timestamp: number;
+}
+
 // In-memory cache for Unsplash images
-const imageCache = new Map<string, { data: any; timestamp: number }>();
+const imageCache = new Map<string, CachedData>();
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
 export async function GET(request: NextRequest) {
@@ -74,7 +93,7 @@ export async function GET(request: NextRequest) {
             return NextResponse.json(imageData);
         } else {
             // No results found, return a fallback (also cache it)
-            const fallbackData = {
+            const fallbackData: UnsplashImageData = {
                 id: 'fallback',
                 urls: {
                     regular: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=400&q=80',
@@ -82,6 +101,7 @@ export async function GET(request: NextRequest) {
                     thumb: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200&q=80'
                 },
                 alt_description: 'Abstract background',
+                description: null,
                 user: {
                     name: 'Unsplash'
                 }
@@ -102,6 +122,7 @@ export async function GET(request: NextRequest) {
                 thumb: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200&q=80'
             },
             alt_description: 'Abstract background',
+            description: null,
             user: {
                 name: 'Unsplash'
             }

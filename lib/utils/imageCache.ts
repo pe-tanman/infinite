@@ -85,7 +85,7 @@ export function cleanupImageCache(): void {
                 try {
                     const data = JSON.parse(localStorage.getItem(key) || '{}');
                     cacheKeys.push({ key, timestamp: data.timestamp || 0 });
-                } catch (error) {
+                } catch {
                     // Remove invalid cache entries
                     localStorage.removeItem(key);
                 }

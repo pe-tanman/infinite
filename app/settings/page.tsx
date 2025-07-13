@@ -183,6 +183,21 @@ const SettingsPage: React.FC = () => {
                                 </div>
                             </div>
 
+                            {/* Help text for selection features */}
+                            {(
+                                <div className="text-xs text-gray-500 mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                    <div className="space-y-1">
+                                        <div><strong>Tips:</strong></div>
+                                        <div>• <strong>Double-click</strong> any block to start editing</div>
+                                        <div>• <strong>Ctrl/Cmd + Click</strong> to select multiple blocks</div>
+                                        <div>• <strong>Ctrl/Cmd + A</strong> to select all blocks</div>
+                                        <div>• <strong>Delete key</strong> to remove selected blocks</div>
+                                        <div>• <strong>Escape</strong> to clear selection</div>
+                                        <div>• Use bulk actions toolbar when multiple blocks are selected</div>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* How to get API Key */}
                             <div className="bg-blue-50 rounded-lg p-4">
                                 <h3 className="text-lg font-medium text-blue-900 mb-2">

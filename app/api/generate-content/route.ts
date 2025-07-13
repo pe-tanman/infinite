@@ -106,12 +106,7 @@ This links each block to the one before it, forming the "chain."
 coverImage must be from unsplash.
 include prompt to generate next page's content.
 
-<PageCard 
-    title="Database Design" 
-    excerpt="Understand how to structure and optimize databases for modern applications"
-    coverImageKeywords={["database", "design", "optimization"]}
-    prompt="Write a comprehensive guide on database design, covering key concepts, best practices, and practical examples. Include interactive elements and encourage further learning with related topics."
-/>
+<PageCard title="Database Design" excerpt="Understand how to structure and optimize databases for modern applications" coverImageKeywords={["database", "design", "optimization"]} prompt="Write a comprehensive guide on database design, covering key concepts, best practices, and practical examples. Include interactive elements and encourage further learning with related topics."/>
 
 
 ### 4. Diagram Block Specification
@@ -210,6 +205,7 @@ yAxisLabels={["High Effort", "Low Effort"]}
         }
 
         const data = await response.json()
+        console.log('OpenAI API response data:', data)
 
         // The /v1/responses API returns the generated content directly in the 'data' object
         if (!data || !data.output) {
