@@ -64,8 +64,8 @@ export async function POST(request: NextRequest) {
         const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/generate-content`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                title, 
+            body: JSON.stringify({
+                title,
                 prompt: fullPrompt,
                 includeInteractiveElements: true,
                 includeNextSteps: true
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
 
         // Format the response as markdown content
         let markdownContent = '';
-        
+
         // Add file references at the top
         if (files.length > 0) {
             markdownContent += `## 📎 Uploaded Files\n\n`;
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
             });
             markdownContent += '\n---\n\n';
         }
-        
+
         // Add the generated content
         markdownContent += generatedText || '';
 
@@ -101,15 +101,15 @@ export async function POST(request: NextRequest) {
 
     } catch (error) {
         console.error('File processing error:', error);
-        
+
         // Provide fallback content if AI processing fails
         const { files, prompt, title } = await request.json().catch(() => ({}));
-        
+
         let fallbackContent = '';
         if (title) {
             fallbackContent += `# ${title}\n\n`;
         }
-        
+
         fallbackContent += `## 📎 Uploaded Files\n\n`;
         if (files && Array.isArray(files)) {
             files.forEach((file: { name: string; size: number }, index: number) => {
@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
             });
         }
         fallbackContent += '\n';
-        
+
         fallbackContent += `## Note\n\nAI processing is currently unavailable. The uploaded files have been stored and can be processed when the service is restored.\n\n`;
         fallbackContent += `**Original Prompt:** ${prompt || 'No prompt provided'}\n\n`;
         fallbackContent += `*Created on ${new Date().toLocaleDateString()}*\n`;

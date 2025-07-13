@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY,
-});
+// Function to get OpenAI client when needed
+const getOpenAIClient = () => {
+    const apiKey = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+    if (!apiKey) {
+        return null;
+    }
+    return new OpenAI({ apiKey });
+};
 
 export async function POST(request: NextRequest) {
     try {
@@ -66,7 +70,8 @@ export async function POST(request: NextRequest) {
         // Handle different upload methods
         switch (uploadMethod) {
             case 'openai':
-                if (!openai.apiKey) {
+                const openai = getOpenAIClient();
+                if (!openai) {
                     return NextResponse.json(
                         { error: 'OpenAI API key not configured' },
                         { status: 400 }
@@ -157,13 +162,16 @@ export async function DELETE(request: NextRequest) {
         }
 
         // If it's an OpenAI file, delete it from OpenAI
-        if (openaiFileId && openai.apiKey) {
-            try {
-                await openai.files.delete(openaiFileId);
-                console.log('File deleted from OpenAI:', openaiFileId);
-            } catch (error) {
-                console.error('Failed to delete from OpenAI:', error);
-                // Continue with local deletion even if OpenAI deletion fails
+        if (openaiFileId) {
+            const openai = getOpenAIClient();
+            if (openai) {
+                try {
+                    await openai.files.delete(openaiFileId);
+                    console.log('File deleted from OpenAI:', openaiFileId);
+                } catch (error) {
+                    console.error('Failed to delete from OpenAI:', error);
+                    // Continue with local deletion even if OpenAI deletion fails
+                }
             }
         }
 
