@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { useAuth } from '@/components/auth/AuthProvider'
+import { useSubscription } from '@/components/subscription/SubscriptionProvider'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import FileUpload from '@/components/custom/FileUpload'
 import { useRouter } from 'next/navigation'
@@ -9,6 +10,9 @@ import { db } from '@/lib/firebase/clientApp'
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { generateContentWithOpenAI } from '@/lib/openai/contentGenerator'
 import { isOpenAIConfigured } from '@/lib/openai/config'
+import { SubscriptionService } from '@/lib/subscription/service'
+import PricingModal from '@/components/subscription/PricingModal'
+import DocumentLimitModal from '@/components/subscription/DocumentLimitModal'
 
 interface UploadedFile {
     id: string;
@@ -23,11 +27,14 @@ interface UploadedFile {
 
 const NewDocumentPage: React.FC = () => {
     const { user } = useAuth()
+    const { canCreateDocument, documentsUsed, documentLimit, refreshSubscription } = useSubscription()
     const router = useRouter()
     const [prompt, setPrompt] = useState('')
     const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
     const [isCreating, setIsCreating] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [showPricingModal, setShowPricingModal] = useState(false)
+    const [showDocumentLimitModal, setShowDocumentLimitModal] = useState(false)
 
     // Generate title from prompt and files
     const generateTitleFromContent = (prompt: string, files: UploadedFile[]): string => {
@@ -82,6 +89,12 @@ const NewDocumentPage: React.FC = () => {
         // Require either prompt or files
         if (!prompt.trim() && uploadedFiles.length === 0) {
             setError('Please enter a prompt or upload files to create a page')
+            return
+        }
+
+        // Check document limit before creating
+        if (!canCreateDocument) {
+            setShowDocumentLimitModal(true)
             return
         }
 
@@ -185,6 +198,13 @@ const NewDocumentPage: React.FC = () => {
             // Save to Firestore (async)
             setDoc(doc(db, 'pages', pageId), pageData)
 
+            // Increment document count for subscription tracking
+            if (user?.uid) {
+                await SubscriptionService.incrementDocumentCount(user.uid)
+                // Refresh subscription data to update UI
+                await refreshSubscription()
+            }
+
             console.log('Document created successfully with ID:', pageId)
 
             // Navigate to the new page
@@ -222,10 +242,81 @@ const NewDocumentPage: React.FC = () => {
         setPrompt(template.prompt)
     }
 
+    const handleSelectPlan = async (planId: string) => {
+        if (planId === 'free') {
+            // Handle downgrade to free (if needed)
+            setShowPricingModal(false)
+            return
+        }
+
+        try {
+            const response = await fetch('/api/subscription/create-checkout-session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    planId,
+                    userId: user?.uid,
+                }),
+            })
+
+            if (!response.ok) {
+                throw new Error('Failed to create checkout session')
+            }
+
+            const { url } = await response.json()
+            window.location.href = url
+        } catch (error) {
+            console.error('Error creating checkout session:', error)
+            setError('Failed to start checkout process. Please try again.')
+        }
+    }
+
     return (
         <ProtectedRoute>
             <div className="min-h-screen bg-gray-50 py-8">
                 <div className="max-w-4xl mx-auto px-6">
+                    {/* Document Usage Banner */}
+                    {documentLimit && (
+                        <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-900">
+                                            Document Usage
+                                        </p>
+                                        <p className="text-sm text-gray-500">
+                                            {documentsUsed} of {documentLimit} documents used
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <div className="w-32 bg-gray-200 rounded-full h-2">
+                                        <div 
+                                            className={`h-2 rounded-full ${
+                                                (documentsUsed / documentLimit) >= 0.8 ? 'bg-red-500' : 
+                                                (documentsUsed / documentLimit) >= 0.6 ? 'bg-yellow-500' : 
+                                                'bg-green-500'
+                                            }`}
+                                            style={{ width: `${Math.min((documentsUsed / documentLimit) * 100, 100)}%` }}
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={() => setShowPricingModal(true)}
+                                        className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                                    >
+                                        Upgrade
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Main Form */}
                     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
@@ -399,6 +490,21 @@ const NewDocumentPage: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Modals */}
+            <PricingModal 
+                isOpen={showPricingModal} 
+                onClose={() => setShowPricingModal(false)}
+                onSelectPlan={handleSelectPlan}
+            />
+            <DocumentLimitModal 
+                isOpen={showDocumentLimitModal} 
+                onClose={() => setShowDocumentLimitModal(false)}
+                onUpgrade={() => {
+                    setShowDocumentLimitModal(false)
+                    setShowPricingModal(true)
+                }}
+            />
         </ProtectedRoute>
     )
 }

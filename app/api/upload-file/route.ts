@@ -3,7 +3,7 @@ import OpenAI from 'openai';
 
 // Function to get OpenAI client when needed
 const getOpenAIClient = () => {
-    const apiKey = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
         return null;
     }

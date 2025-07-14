@@ -15,6 +15,7 @@
     "@radix-ui/react-switch": "^1.2.5",
     "@remark-embedder/core": "^3.0.3",
     "@remark-embedder/transformer-oembed": "^5.0.1",
+    "@stripe/stripe-js": "^7.4.0",
     "@types/mdx": "^2.0.13",
     "@types/react-dropzone": "^4.2.2",
     "axios": "^1.10.0",
@@ -52,6 +53,7 @@
     "remark-toc": "^9.0.0",
     "shadcn": "^2.7.0",
     "shiki": "^3.7.0",
+    "stripe": "^18.3.0",
     "tailwind-merge": "^3.3.1",
     "unified": "^11.0.5",
     "unist-util-visit": "^5.0.0"

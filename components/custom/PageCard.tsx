@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '../auth/AuthProvider'
+import { useSubscription } from '../subscription/SubscriptionProvider'
 import { db } from '@/lib/firebase/clientApp'
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { generateContentWithOpenAI } from '@/lib/openai/contentGenerator'
 import { getCachedImage, setCachedImage } from '@/lib/utils/imageCache'
+import { SubscriptionService } from '@/lib/subscription/service'
 
 interface PageCardProps {
     title: string
@@ -25,6 +27,7 @@ const PageCard: React.FC<PageCardProps> = ({
     maxWords = 20,
 }) => {
     const { user } = useAuth()
+    const { canCreateDocument, refreshSubscription } = useSubscription()
     const generateContent = true // Flag to enable auto-content generation
     const [isGenerating, setIsGenerating] = useState(false)
     const [generationStatus, setGenerationStatus] = useState<'idle' | 'generating' | 'success' | 'error'>('idle')
@@ -134,6 +137,13 @@ const PageCard: React.FC<PageCardProps> = ({
         e.preventDefault() // Prevent default link navigation
 
         if (generateContent && !isGenerating) {
+            // Check if user can create more documents
+            if (!canCreateDocument) {
+                // TODO: Show upgrade modal or redirect to pricing
+                console.log('User has reached document limit')
+                return
+            }
+
             setIsGenerating(true)
             setGenerationStatus('generating')
             console.log('PageCard clicked, generating content for:', title)
@@ -164,6 +174,13 @@ const PageCard: React.FC<PageCardProps> = ({
                 // Save user progress if signed in
                 if (user) {
                     await saveUserProgress(nextPageId, title)
+                }
+
+                // Increment document count for subscription tracking
+                if (user?.uid) {
+                    await SubscriptionService.incrementDocumentCount(user.uid)
+                    // Refresh subscription data to update UI
+                    await refreshSubscription()
                 }
 
                 setGenerationStatus('success')
