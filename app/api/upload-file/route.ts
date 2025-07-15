@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { logEnvironmentStatus } from '@/lib/utils/environment';
 
 // Function to get OpenAI client when needed
 const getOpenAIClient = () => {
     const apiKey = process.env.OPENAI_API_KEY;
+    console.log('Checking OpenAI API key:', !!apiKey);
+    
+    // Log environment status for debugging
+    if (!apiKey) {
+        console.error('OpenAI API key is not configured. Logging environment status:');
+        logEnvironmentStatus();
+    }
+    
     if (!apiKey) {
         return null;
     }

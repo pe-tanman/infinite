@@ -226,7 +226,7 @@ export default function BlockBasedEditor({
         return { content, endIndex };
     };
 
-    const extractListBlock = (lines: string[], startIndex: number): { content: string; endIndex: number } | null => {
+    const extractListBlock = useCallback((lines: string[], startIndex: number): { content: string; endIndex: number } | null => {
         let content = lines[startIndex];
         let endIndex = startIndex;
 
@@ -244,7 +244,7 @@ export default function BlockBasedEditor({
         }
 
         return { content, endIndex };
-    };
+    }, []);
 
     const extractTableBlock = (lines: string[], startIndex: number): { content: string; endIndex: number } | null => {
         let content = lines[startIndex];

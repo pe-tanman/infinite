@@ -38,7 +38,7 @@ export default function FileUpload({
     const [uploading, setUploading] = useState<string[]>([]);
     const [errors, setErrors] = useState<string[]>([]);
 
-    const uploadFile = async (file: File): Promise<UploadedFile | null> => {
+    const uploadFile = useCallback(async (file: File): Promise<UploadedFile | null> => {
         try {
             setUploading(prev => [...prev, file.name]);
             setErrors([]);
@@ -78,7 +78,7 @@ export default function FileUpload({
         } finally {
             setUploading(prev => prev.filter(name => name !== file.name));
         }
-    };
+    }, [uploadMethod]);
 
     const onDrop = useCallback(async (acceptedFiles: File[]) => {
         // Validate file count
@@ -117,7 +117,7 @@ export default function FileUpload({
         if (successfulUploads.length > 0) {
             onFileUpload(successfulUploads);
         }
-    }, [uploadedFiles.length, maxFiles, maxSizePerFile, acceptedFileTypes, uploadMethod, onFileUpload, uploadFile]);
+    }, [uploadedFiles.length, maxFiles, maxSizePerFile, acceptedFileTypes, onFileUpload, uploadFile]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
