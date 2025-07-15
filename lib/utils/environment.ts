@@ -32,12 +32,12 @@ export const checkEnvironmentVariables = () => {
         isRequired: config.required,
         description: config.description,
         valueLength: config.value?.length || 0,
-        status: config.required && !config.value ? 'ERROR' : 
-                config.value ? 'OK' : 'MISSING'
+        status: config.required && !config.value ? 'ERROR' :
+            config.value ? 'OK' : 'MISSING'
     }));
 
     const hasErrors = results.some(r => r.status === 'ERROR');
-    
+
     return {
         hasErrors,
         results,
@@ -52,13 +52,13 @@ export const checkEnvironmentVariables = () => {
 
 export const logEnvironmentStatus = () => {
     const check = checkEnvironmentVariables();
-    
+
     console.log('=== Environment Variables Status ===');
     console.log(`Environment: ${process.env.NODE_ENV}`);
     console.log(`Configured: ${check.summary.configured}/${check.summary.total}`);
     console.log(`Required: ${check.summary.required}`);
     console.log(`Errors: ${check.summary.errors}`);
-    
+
     if (check.hasErrors) {
         console.error('❌ Missing required environment variables:');
         check.results
@@ -67,6 +67,6 @@ export const logEnvironmentStatus = () => {
     } else {
         console.log('✅ All required environment variables are configured');
     }
-    
+
     return check;
 };

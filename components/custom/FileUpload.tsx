@@ -58,7 +58,7 @@ export default function FileUpload({
             }
 
             const result = await response.json();
-            
+
             const uploadedFile: UploadedFile = {
                 id: result.id || `file-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                 name: file.name,
@@ -141,13 +141,13 @@ export default function FileUpload({
         if (fileType.includes('pdf')) {
             return (
                 <svg className="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
                 </svg>
             );
         }
         return (
             <svg className="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
             </svg>
         );
     };
@@ -164,8 +164,8 @@ export default function FileUpload({
                             disabled={uploading.length > 0 || uploadedFiles.length >= maxFiles}
                             className={`
                                 inline-flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
-                                ${uploading.length > 0 
-                                    ? 'bg-blue-100 text-blue-600 cursor-not-allowed' 
+                                ${uploading.length > 0
+                                    ? 'bg-blue-100 text-blue-600 cursor-not-allowed'
                                     : uploadedFiles.length >= maxFiles
                                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                         : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 hover:border-blue-300'

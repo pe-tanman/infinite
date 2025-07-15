@@ -157,7 +157,7 @@ const NewDocumentPage: React.FC = () => {
             const pageData = {
                 title,
                 content,
-                prompt: prompt || undefined,
+                prompt: prompt || "",
                 excerpt: uploadedFiles.length > 0
                     ? `Analysis of ${uploadedFiles.length} uploaded file(s): ${uploadedFiles.map(f => f.name).join(', ')}`
                     : `AI-generated content from: ${prompt}`,
@@ -176,7 +176,7 @@ const NewDocumentPage: React.FC = () => {
                     type: f.type,
                     uploadedAt: f.uploadedAt,
                     openaiFileId: f.openaiFileId
-                })) : undefined
+                })) : {}
             }
 
             // Save to localStorage first (for immediate redirect)

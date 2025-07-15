@@ -5,13 +5,13 @@ import { logEnvironmentStatus } from '@/lib/utils/environment';
 // Function to get OpenAI client when needed
 const getOpenAIClient = () => {
     const apiKey = process.env.OPENAI_API_KEY;
-    
+
     // Log environment status for debugging
     if (!apiKey) {
         console.error('OpenAI API key is not configured. Logging environment status:');
         logEnvironmentStatus();
     }
-    
+
     if (!apiKey) {
         return null;
     }
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
                     const arrayBuffer = await file.arrayBuffer();
                     const buffer = Buffer.from(arrayBuffer);
                     const base64String = buffer.toString('base64');
-                    
+
                     result.base64Data = `data:${file.type};base64,${base64String}`;
                     console.log('File converted to base64, size:', base64String.length);
                 } catch (error) {

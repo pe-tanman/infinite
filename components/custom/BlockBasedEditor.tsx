@@ -47,7 +47,7 @@ export default function BlockBasedEditor({
         if (sessionScrollPosition) {
             const targetPosition = parseInt(sessionScrollPosition);
             console.log('� Restoring scroll from session storage:', targetPosition);
-            
+
             // Multiple restoration attempts
             const attempts = [0, 50, 100, 200, 500];
             attempts.forEach(delay => {
@@ -57,7 +57,7 @@ export default function BlockBasedEditor({
                         behavior: delay === 0 ? 'instant' : 'smooth'
                     });
                     console.log(`� Scroll restore attempt at ${delay}ms to position ${targetPosition}`);
-                    
+
                     if (delay === 500) {
                         sessionStorage.removeItem('blockEditorScrollPosition');
                     }
@@ -101,7 +101,7 @@ export default function BlockBasedEditor({
         const selfClosingComponents = [
             'PageCard', 'CoverImage', 'DiagramCard', 'Callout', 'ImageChild'
         ];
-        
+
         return selfClosingComponents.some(comp => trimmed.startsWith(`<${comp}`));
     };
 
@@ -297,7 +297,7 @@ export default function BlockBasedEditor({
 
     const parseContentIntoBlocks = useCallback(async (markdownContent: string) => {
         setIsProcessing(true);
-        
+
         try {
             const lines = markdownContent.split('\n');
             const newBlocks: Block[] = [];
@@ -448,7 +448,7 @@ export default function BlockBasedEditor({
         try {
             // Import remark-gfm dynamically to ensure table support
             const remarkGfm = (await import('remark-gfm')).default;
-            
+
             block.mdx = await serialize(trimmedContent, {
                 mdxOptions: {
                     remarkPlugins: [remarkGfm], // Enable GitHub Flavored Markdown for tables
@@ -480,11 +480,11 @@ export default function BlockBasedEditor({
 
     const handleBlockClick = (blockId: string, event?: React.MouseEvent) => {
         if (!isEditing) return;
-        
+
         // Handle multiple selection with Ctrl/Cmd key
         if (event && (event.ctrlKey || event.metaKey)) {
-            setSelectedBlockIds(prev => 
-                prev.includes(blockId) 
+            setSelectedBlockIds(prev =>
+                prev.includes(blockId)
                     ? prev.filter(id => id !== blockId) // Remove if already selected
                     : [...prev, blockId] // Add to selection
             );
@@ -515,10 +515,10 @@ export default function BlockBasedEditor({
         const currentPageOffset = window.pageYOffset;
         const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
         const capturedScrollPosition = Math.max(currentScrollY, currentPageOffset, scrollTop);
-        
+
         // Also save to session storage to persist across parent re-renders
         sessionStorage.setItem('blockEditorScrollPosition', capturedScrollPosition.toString());
-        
+
         console.log('📍 BlockBasedEditor: Saving scroll position before MDX operations:');
         console.log('  window.scrollY:', currentScrollY);
         console.log('  window.pageYOffset:', currentPageOffset);
@@ -542,15 +542,15 @@ export default function BlockBasedEditor({
                 }
                 return (index > 0 ? '\n' : '') + block.content;
             }).join('');
-            
+
             // Update parent content (this will trigger parent's scroll preservation)
             onContentChange(newContent);
-            
+
             // Re-serialize MDX asynchronously after content is updated
             const blockIndex = updatedBlocks.findIndex(b => b.id === editingBlockId);
             if (blockIndex !== -1) {
                 const remarkGfm = (await import('remark-gfm')).default;
-                
+
                 updatedBlocks[blockIndex].mdx = await serialize(editContent, {
                     mdxOptions: {
                         remarkPlugins: [remarkGfm],
@@ -562,10 +562,10 @@ export default function BlockBasedEditor({
 
             // Update blocks with new MDX
             setBlocks(updatedBlocks);
-            
+
             setEditingBlockId(null);
             setEditContent('');
-            
+
             console.log('✅ BlockBasedEditor: Block save completed, parent will handle scroll preservation');
         } catch (error) {
             console.error('Error saving block:', error);
@@ -583,7 +583,7 @@ export default function BlockBasedEditor({
         // Save current scroll position for parent's scroll preservation
         const currentScroll = window.scrollY;
         sessionStorage.setItem('blockEditorScrollPosition', currentScroll.toString());
-        
+
         const updatedBlocks = blocks.filter(block => block.id !== blockId);
         setBlocks(updatedBlocks);
 
@@ -593,7 +593,7 @@ export default function BlockBasedEditor({
             if (block.type === 'component') {
                 return (index > 0 ? '\n\n' : '') + block.content;
             }
-            
+
             // For other blocks, use simpler spacing
             return (index > 0 ? '\n' : '') + block.content;
         }).join('');
@@ -752,11 +752,10 @@ export default function BlockBasedEditor({
                 <div
                     key={block.id}
                     data-block-id={block.id}
-                    className={`block-container group relative ${
-                        selectedBlockIds.includes(block.id) 
-                            ? selectedBlockIds.length > 1 
-                                ? 'ring-2 ring-blue-400 bg-blue-50/50' 
-                                : 'ring-2 ring-blue-500' 
+                    className={`block-container group relative ${selectedBlockIds.includes(block.id)
+                            ? selectedBlockIds.length > 1
+                                ? 'ring-2 ring-blue-400 bg-blue-50/50'
+                                : 'ring-2 ring-blue-500'
                             : ''
                         } ${isEditing ? 'cursor-pointer hover:bg-gray-50' : ''}`}
                     onClick={(e) => handleBlockClick(block.id, e)}
