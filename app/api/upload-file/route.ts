@@ -5,7 +5,6 @@ import { logEnvironmentStatus } from '@/lib/utils/environment';
 // Function to get OpenAI client when needed
 const getOpenAIClient = () => {
     const apiKey = process.env.OPENAI_API_KEY;
-    console.log('Checking OpenAI API key:', !!apiKey);
     
     // Log environment status for debugging
     if (!apiKey) {
@@ -81,8 +80,9 @@ export async function POST(request: NextRequest) {
             case 'openai':
                 const openai = getOpenAIClient();
                 if (!openai) {
+                    const apiKey = process.env.OPENAI_API_KEY;
                     return NextResponse.json(
-                        { error: 'OpenAI API key not configured' },
+                        { error: 'OpenAI API key not configured: ' + (apiKey ? apiKey.slice(0, 5) : '') },
                         { status: 400 }
                     );
                 }
