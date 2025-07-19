@@ -5,6 +5,7 @@ import Sidebar from "@/components/sidebar";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { SubscriptionProvider } from "@/components/subscription/SubscriptionProvider";
 import ClientLayoutWrapper from "@/components/ClientLayoutWrapper";
+import RecaptchaLoader from "@/components/auth/RecaptchaLoader";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,6 +46,7 @@ export default function RootLayout({
             </ClientLayoutWrapper>
           </SubscriptionProvider>
         </AuthProvider>
+        <RecaptchaLoader />
       </body>
     </html>
   );

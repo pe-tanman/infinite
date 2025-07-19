@@ -4,10 +4,13 @@ import {
     createUserWithEmailAndPassword,
     signInWithPopup,
     GoogleAuthProvider,
-    sendPasswordResetEmail
+    sendPasswordResetEmail,
+    MultiFactorResolver
 } from 'firebase/auth'
 import { auth } from '@/lib/firebase/clientApp'
 import { cn } from '@/lib/utils'
+import { isMFAError, getMFAResolver } from '@/lib/firebase/mfa'
+import MFAVerification from './MFAVerification'
 
 interface SignInModalProps {
     isOpen: boolean
@@ -22,8 +25,20 @@ const SignInModal: React.FC<SignInModalProps> = ({ isOpen, onClose }) => {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
     const [resetEmailSent, setResetEmailSent] = useState(false)
+    const [mfaResolver, setMfaResolver] = useState<MultiFactorResolver | null>(null)
 
     if (!isOpen) return null
+
+    const handleMFASuccess = (userCredential: any) => {
+        console.log('MFA verification successful:', userCredential);
+        setMfaResolver(null);
+        onClose();
+    };
+
+    const handleMFACancel = () => {
+        setMfaResolver(null);
+        setError('');
+    };
 
     const handleEmailAuth = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -42,8 +57,15 @@ const SignInModal: React.FC<SignInModalProps> = ({ isOpen, onClose }) => {
                 await signInWithEmailAndPassword(auth, email, password)
             }
             onClose()
-        } catch (error: unknown) {
-            setError(error instanceof Error ? error.message : 'An error occurred')
+        } catch (error: any) {
+            if (isMFAError(error)) {
+                // Handle MFA required error
+                const resolver = getMFAResolver(error);
+                setMfaResolver(resolver);
+                setError('');
+            } else {
+                setError(error.message || 'An error occurred')
+            }
         } finally {
             setLoading(false)
         }
@@ -57,8 +79,15 @@ const SignInModal: React.FC<SignInModalProps> = ({ isOpen, onClose }) => {
             const provider = new GoogleAuthProvider()
             await signInWithPopup(auth, provider)
             onClose()
-        } catch (error: unknown) {
-            setError(error instanceof Error ? error.message : 'An error occurred')
+        } catch (error: any) {
+            if (isMFAError(error)) {
+                // Handle MFA required error
+                const resolver = getMFAResolver(error);
+                setMfaResolver(resolver);
+                setError('');
+            } else {
+                setError(error.message || 'An error occurred')
+            }
         } finally {
             setLoading(false)
         }
@@ -251,6 +280,15 @@ const SignInModal: React.FC<SignInModalProps> = ({ isOpen, onClose }) => {
                     )}
                 </div>
             </div>
+
+            {/* MFA Verification Modal */}
+            {mfaResolver && (
+                <MFAVerification
+                    resolver={mfaResolver}
+                    onSuccess={handleMFASuccess}
+                    onCancel={handleMFACancel}
+                />
+            )}
         </div>
     )
 }

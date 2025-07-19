@@ -61,14 +61,14 @@ export async function POST(request: NextRequest) {
         fullPrompt += `\nPlease analyze any uploaded files and create comprehensive learning content based on them and the provided prompt. Format the response as valid MDX with interactive components.`;
 
         // Use internal /api/generate-content API
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/generate-content`, {
+        const response = await fetch(`${request.nextUrl.origin}/api/generate-content`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                title,
-                prompt: fullPrompt,
-                includeInteractiveElements: true,
-                includeNextSteps: true
+            title,
+            prompt: fullPrompt,
+            includeInteractiveElements: true,
+            includeNextSteps: true
             })
         });
 
