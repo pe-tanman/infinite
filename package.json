@@ -28,7 +28,7 @@
     "gray-matter": "^4.0.3",
     "lucide-react": "^0.525.0",
     "metadata-scraper": "^0.2.61",
-    "next": "^15.3.4",
+    "next": "15.3.8",
     "next-mdx-remote": "^5.0.0",
     "next-mdx-remote-client": "^2.1.2",
     "openai": "^5.9.0",
