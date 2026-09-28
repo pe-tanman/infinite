@@ -1,158 +1,73 @@
-# Infinite - AI-Powered Document Creation Platform
+# ♾️ Infinite
 
-An intelligent document creation platform that leverages OpenAI's file API to generate comprehensive learning content from uploaded documents and prompts.
+> *Drop in a PDF or a question, and get an interactive study page back.*
 
-## 🚀 Features
+![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
+![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o-412991?logo=openai)
+![Firebase](https://img.shields.io/badge/Firebase-Firestore-FFCA28?logo=firebase&logoColor=black)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
 
-### 📁 Unified File Upload & Content Creation
-- **Seamless Integration**: Single interface for file uploads, prompts, or both
-- **Smart File Processing**: PDFs, DOCs, TXT files analyzed with OpenAI's latest file input API
-- **Auto-generated Titles**: Intelligent title generation from file names or prompt content
-- **Drag & Drop Interface**: Modern, intuitive file upload with real-time feedback
 
-### 🤖 Advanced AI Content Generation
-- **Multi-modal Analysis**: Process text and visual elements from PDF pages
-- **File + Prompt Combination**: Upload files and add specific focus areas or questions
-- **Fallback Processing**: Graceful handling when AI services are unavailable
-- **Rich Formatting**: Generated content includes diagrams, callouts, and interactive elements
+## 🌟 Highlights
 
-### 📝 Dynamic Document Management
-- **Real-time Editing**: Block-based and full-text editing modes with live preview
-- **Interactive Components**: Embedded diagrams, image galleries, toggles, and page cards
-- **Version Control**: Automatic saving and change tracking
-- **Cloud Storage**: Firebase integration with offline support
+- 📁 **Files, prompts, or both** — upload PDFs, DOCX or TXT files, type a prompt, or combine them in one screen
+- 🤖 **AI-written learning pages** — GPT-4o reads your documents and produces structured, well-formatted content
+- 🧩 **Rich building blocks** — diagrams (arrow, loop, matrix, pyramid), callouts, toggles, image galleries and page cards
+- ✏️ **Edit in place** — switch between a block-based editor and full-text editing, with live preview
+- ☁️ **Saved to the cloud** — pages are stored in Firebase with Google sign-in
+- 🏷️ **Zero-friction titles** — titles are generated from your files or prompt automatically
 
-## Getting Started
 
-### Prerequisites
-- Node.js 18+ and npm
-- OpenAI API key
-- Firebase project (for data storage)
+## ℹ️ Overview
 
-### Installation
+Infinite turns raw material into study material. Upload lecture slides or a paper and optionally tell it what to focus on. Infinite sends the files to OpenAI's file-input API and gets back a document built from MDX components. You can then open that page, reorganize it, edit it and keep building on it.
 
-1. Clone the repository:
+Every generated page can link to new pages, so a topic can branch out as far as you want to take it. That's where the name comes from.
+
+
+### ✍️ Author
+
+Built by [Yuki Ishihara](https://github.com/pe-tanman). More projects on my [portfolio](https://portfolio-pe-tanmans-projects.vercel.app).
+
+
+## 🚀 Usage
+
+Go to **`/new`** and choose how to start:
+
+| Mode | What you do | What you get |
+| --- | --- | --- |
+| **Files only** | Drag in PDFs or documents | A page summarizing and explaining them |
+| **Prompt only** | Describe a topic (quick templates available) | A page generated from scratch |
+| **Files + prompt** | Upload files *and* say what to focus on | A page tailored to your question |
+
+Limits: up to **5 files**, **32 MB each**. If the OpenAI upload fails, Infinite falls back to base64 processing.
+
+
+## ⬇️ Installation
+
+Requirements: **Node.js 18+**, an **OpenAI API key**, and a **Firebase** project with Firestore and Authentication enabled.
+
 ```bash
-git clone <repository-url>
+git clone https://github.com/pe-tanman/infinite.git
 cd infinite
-```
-
-2. Install dependencies:
-```bash
 npm install
 ```
 
-3. Set up environment variables:
+Create a `.env.local` file in the project root:
+
 ```bash
-cp .env.local.example .env.local
+OPENAI_API_KEY=sk-...
+UNSPLASH_ACCESS_KEY=...        # optional: cover images
+UNSPLASH_SECRET_KEY=...        # optional
+NEXT_PUBLIC_BASE_URL=http://localhost:3000
 ```
 
-Edit `.env.local` with your configuration:
-```bash
-OPENAI_API_KEY=your_openai_api_key_here
-NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_config
-# ... other Firebase config variables
-```
+Put your Firebase web config in `lib/firebase/clientApp.js` (see [FIRESTORE_SETUP.md](FIRESTORE_SETUP.md) for the setup steps). Then run:
 
-4. Run the development server:
 ```bash
 npm run dev
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000) to see the application.
+Open [http://localhost:3000](http://localhost:3000).
 
-## 📖 Usage
-
-### Unified Page Creation
-
-The new unified interface supports three content creation modes seamlessly:
-
-#### 1. **Files Only** - Upload and Analyze
-1. Navigate to `/new` in the application
-2. Drag and drop files (PDFs, DOCs, etc.) into the upload area
-3. Click "Create Page" - AI automatically analyzes files and generates content
-4. Title is auto-generated from file names
-
-#### 2. **Prompt Only** - Traditional AI Generation  
-1. Navigate to `/new` in the application
-2. Enter your learning prompt in the text area
-3. Click "Create Page" - AI generates content based on prompt
-4. Title is auto-generated from prompt content
-
-#### 3. **Files + Prompt** - Combined Analysis
-1. Upload files to analyze
-2. Add specific instructions or focus areas in the prompt
-3. AI analyzes files with your specific requirements
-4. Creates enhanced content combining file analysis with prompt guidance
-
-### Smart Features
-- **Auto-generated Titles**: No manual title entry needed
-- **Dynamic Placeholders**: Interface adapts based on whether files are uploaded
-- **Quick Templates**: Pre-built prompts for common use cases (hidden when files are uploaded)
-- **Real-time Preview**: See title preview as you type or upload files
-
-### File Support & Processing
-- **Supported Types**: PDF, DOC, DOCX, TXT, and more
-- **Size Limits**: 32MB per file, up to 5 files per page  
-- **AI Processing**: Uses OpenAI's file input API for optimal analysis
-- **Automatic Upload**: Files uploaded to OpenAI Files API automatically
-- **Fallback Support**: Base64 processing if OpenAI upload fails
-
-## 🏗️ Architecture
-
-### Frontend Components
-- **FileUpload.tsx**: Drag-and-drop file upload with validation
-- **CreatePageWithFiles.tsx**: Main page creation interface
-- **BlockBasedEditor.tsx**: Interactive content editing system
-
-### API Routes
-- **`/api/upload-file`**: Handles file uploads to various storage methods
-- **`/api/process-files`**: Processes files with OpenAI and generates content
-
-### AI Integration
-Uses OpenAI's responses API with file input support:
-```typescript
-const response = await openai.responses.create({
-    model: 'gpt-4o',
-    input: [{
-        role: 'user',
-        content: [
-            { type: 'input_file', file_id: 'file-abc123' },
-            { type: 'input_text', text: 'Analyze this document...' }
-        ]
-    }]
-});
-```
-
-## 📚 Documentation
-
-- [File Upload System Documentation](docs/FILE_UPLOAD_SYSTEM.md)
-- [Block-Based Editor Guide](docs/BLOCK_BASED_EDITOR.md)
-- [AI Content Generation](docs/AI_CONTENT_GENERATION.md)
-
-## 🛠️ Development
-
-### Tech Stack
-- **Framework**: Next.js 15 with App Router
-- **Styling**: Tailwind CSS
-- **Database**: Firebase Firestore
-- **AI**: OpenAI GPT-4o with file inputs
-- **File Handling**: react-dropzone
-- **Markdown**: MDX with syntax highlighting
-
-### Key Dependencies
-```json
-{
-  "next": "^15.3.4",
-  "openai": "^4.0.0",
-  "react-dropzone": "^14.0.0",
-  "firebase": "^10.0.0",
-  "next-mdx-remote": "^5.0.0"
-}
-```
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Stack: Next.js 15 (App Router) · React 19 · Tailwind CSS 4 · OpenAI SDK · Firebase · next-mdx-remote.
